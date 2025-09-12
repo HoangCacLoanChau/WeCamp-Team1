@@ -7,6 +7,9 @@ class LoginPage extends Page {
   get passwordInput() {
     return $("#password");
   }
+  get toast() {
+    return $(".Toastify__toast-body div:nth-child(2)");
+  }
   get loginButton() {
     return $("#root > main > div > div > div > div > form > button");
   }

@@ -1,5 +1,6 @@
+import LoginPage from "../../pageobjects/auth/login.page";
+
 // specs/login.spec.js
-import LoginPage from "../pageobjects/login.page";
 describe("Login functionality", () => {
   it("should login with valid credentials", async () => {
     await LoginPage.open();

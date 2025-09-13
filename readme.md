@@ -4,6 +4,7 @@ git config --global user.name "username"
 git config --global user.email "email@example.com"
 
 git clone <repo-url>
+npm install - after clone a repo 
 
 Tạo branch mới cho task của bạn
 1. git checkout -b feature/<task-name>

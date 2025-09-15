@@ -5,11 +5,14 @@
     "@wdio/cli": "^9.19.2",
     "@wdio/local-runner": "^9.19.2",
     "@wdio/mocha-framework": "^9.19.2",
-    "@wdio/spec-reporter": "^9.19.2"
+    "@wdio/spec-reporter": "^9.19.2",
+    "newman": "^6.2.1",
+    "newman-reporter-htmlextra": "^1.23.1"
   },
   "scripts": {
     "wdio": "wdio run ./wdio.conf.js",
-    "test:api": "newman run ./api-test/collections/pro-shop.postman_collection.json -e ./api-test/environments/pro-shop.postman_environment.json -r cli,html",
-  "test:all": "npm run wdio && npm run test:api"
-  }
+    "test:api": "node scripts/runCollections.js",
+    "test:all": "npm run wdio && npm run test:api"
+  },
+  "license": "MIT"
 }

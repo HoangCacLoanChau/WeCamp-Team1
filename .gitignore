@@ -4,7 +4,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 package-lock.json
-yarn.lock
 
 # WebdriverIO reports & logs
 allure-results/
@@ -25,5 +24,5 @@ coverage/
 .env
 .env.local
 
-#api
-api-test/
+# Test api reports
+api-test/reports/

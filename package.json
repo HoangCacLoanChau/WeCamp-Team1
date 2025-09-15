@@ -11,7 +11,8 @@
   },
   "scripts": {
     "wdio": "wdio run ./wdio.conf.js",
-    "test:api": "newman run ./api-test/collections/pro-shop.postman_collection.json -e ./api-test/environments/pro-shop.postman_environment.json -r cli,html",
+    "test:api": "node scripts/runCollections.js",
     "test:all": "npm run wdio && npm run test:api"
-  }
+  },
+  "license": "MIT"
 }

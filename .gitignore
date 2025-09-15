@@ -23,6 +23,3 @@ coverage/
 # Env files
 .env
 .env.local
-
-#api
-api-test/

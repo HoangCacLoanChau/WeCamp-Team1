@@ -26,3 +26,4 @@ coverage/
 
 # Test api reports
 api-test/reports/
+scripts/

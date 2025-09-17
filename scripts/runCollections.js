@@ -4,21 +4,20 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
 
-// Lấy __dirname trong ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Danh sách collections và environment tương ứng cần chạy
 const collectionConfigs = [
-  // Config collection cua Chau
   {
     col: './api-test/collections/pro-shop.postman_collection.json',
     env: './api-test/environments/pro-shop.postman_environment.json',
   },
-  // Moi nguoi them config cua rieng tung nguoi vao day nhu format tren cua Chau
+  {
+    col: './api-test/collections/signup_login_logout.postman_collection.json',
+    env: './api-test/environments/signup_login_logout.postman_environment.json',
+  },
 ];
 
-// Hàm chạy từng collection
 collectionConfigs.forEach((config) => {
   const collectionPath = path.resolve(__dirname, '..', config.col);
   const environmentPath = path.resolve(__dirname, '..', config.env);

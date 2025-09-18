@@ -1,17 +1,17 @@
-import Page from "../page";
+import Page from '../page';
 
 class LoginPage extends Page {
   get emailInput() {
-    return $("#email");
+    return $('#email');
   }
   get passwordInput() {
-    return $("#password");
+    return $('#password');
   }
   get toast() {
-    return $(".Toastify__toast-body div:nth-child(2)");
+    return $('.Toastify__toast-body div:nth-child(2)');
   }
   get loginButton() {
-    return $("#root > main > div > div > div > div > form > button");
+    return $('button.btn.btn-primary');
   }
 
   async login(email, password) {
@@ -21,7 +21,7 @@ class LoginPage extends Page {
   }
 
   async open() {
-    await super.open("login");
+    await super.open('login');
   }
 }
 

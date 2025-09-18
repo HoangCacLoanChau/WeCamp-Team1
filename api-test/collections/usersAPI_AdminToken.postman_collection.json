@@ -1,0 +1,559 @@
+{
+	"info": {
+		"_postman_id": "c69da1eb-1eb2-4f82-831b-a798a554e23f",
+		"name": "Admin token",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47948252",
+		"_collection_link": "https://linh-nhi-s-team.postman.co/workspace/Team-Workspace~a2e0114e-98cc-4b1b-8a3d-06a5e2667396/collection/47948252-c69da1eb-1eb2-4f82-831b-a798a554e23f?action=share&source=collection_link&creator=47948252"
+	},
+	"item": [
+		{
+			"name": "Get admin token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"admin@email.com\",\r\n    \"password\": \"123456\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/auth",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"auth"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GAU_01 - Get all Users successfully",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();\r",
+							"\r",
+							"// Check status code\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							"\r",
+							"// Validate response structure\r",
+							"pm.test(\"Response is an array\", function () {\r",
+							"    pm.expect(response).to.be.an('array');\r",
+							"});\r",
+							"\r",
+							"// Loop through each user object and check properties\r",
+							"response.forEach(user => {\r",
+							"    pm.test(\"User object has required properties\", function () {\r",
+							"        pm.expect(user).to.have.property('_id').that.is.a('string');\r",
+							"        pm.expect(user).to.have.property('name').that.is.a('string');\r",
+							"        pm.expect(user).to.have.property('email').that.is.a('string');\r",
+							"        pm.expect(user).to.have.property('password').that.is.a('string');\r",
+							"        pm.expect(user).to.have.property('isAdmin').that.is.a('boolean');\r",
+							"        pm.expect(user).to.have.property('__v').that.is.a('number');\r",
+							"        pm.expect(user).to.have.property('createdAt').that.is.a('string');\r",
+							"        pm.expect(user).to.have.property('updatedAt').that.is.a('string');\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OGZhOWRlNzQ3MDYwYmRmYmM1N2EiLCJpYXQiOjE3NTgxNzA5MTMsImV4cCI6MTc2MDc2MjkxM30.iE-DPenRDul12tDmYLZ_HJp8TA0_26SrHxXbIOfV7hk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GBI_01 - Get User by ID successfully",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/users/68c99d3abc9486363aeadf9b",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"68c99d3abc9486363aeadf9b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GBI_02 - Get User by ID failed - ID unfound",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body contains error message\", function () {\r",
+							"    const responseBody = pm.response.json();\r",
+							"    pm.expect(responseBody).to.have.property('error');\r",
+							"    pm.expect(responseBody.error).to.be.a('string').that.is.not.empty;\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OGZhOWRlNzQ3MDYwYmRmYmM1N2EiLCJpYXQiOjE3NTgxNzIwNzgsImV4cCI6MTc2MDc2NDA3OH0.ls_g4KhN3B292lhqa5CzFU-0LfPyEZiuOArYdQpHt7M",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/users/1234455",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"1234455"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UBI_01 - Update by ID successfully",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response has valid structure\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson).to.have.all.keys('_id', 'name', 'email', 'isAdmin');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response properties have correct types\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson._id).to.be.a('string');\r",
+							"    pm.expect(responseJson.name).to.be.a('string');\r",
+							"    pm.expect(responseJson.email).to.be.a('string');\r",
+							"    pm.expect(responseJson.isAdmin).to.be.a('boolean');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"pblinhnhi@gmail.com\",\r\n  \"isAdmin\": false,\r\n  \"name\": \"Linh Nhi\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/68c99d3abc9486363aeadf9b",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"68c99d3abc9486363aeadf9b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UBI_02 - Update by ID fail with invalid format",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(400);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"pblinhnhi\",\r\n  \"isAdmin\": false,\r\n  \"name\": \"Linh Nhi\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/68c99d3abc9486363aeadf9b",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"68c99d3abc9486363aeadf9b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UBI_03 - Update by ID successfully with new 'isAdmin' field",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () { \r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"pblinhnhi\",\r\n  \"isAdmin\": true,\r\n  \"name\": \"Linh Nhi\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/68c99d3abc9486363aeadf9b",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"68c99d3abc9486363aeadf9b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UBI_04 - Udate by ID failed - unfound ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(404);\r",
+							"});\r",
+							"\r",
+							"// Test for expected error response structure\r",
+							"pm.test(\"Error response structure\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson).to.have.property(\"error\");\r",
+							"    pm.expect(responseJson.error).to.have.property(\"message\");\r",
+							"});\r",
+							"\r",
+							"// Test for specific error message\r",
+							"pm.test(\"Error message is as expected\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.error.message).to.equal(\"User not found\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"pblinhnhi\",\r\n  \"isAdmin\": true,\r\n  \"name\": \"Linh Nhi\"\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/123456",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"123456"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DBI_01 - Delete by ID successfully",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response has message: User removed \", function () {\r",
+							"    const response = pm.response.json();\r",
+							"    pm.expect(response).to.have.property(\"message\");\r",
+							"    pm.expect(response.message).to.equal(\"User removed\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response headers contain Content-Type\", function () {\r",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.equal(\"application/json\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/?68cc563ab2130955f0075bdf",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						""
+					],
+					"query": [
+						{
+							"key": "68cc563ab2130955f0075bdf",
+							"value": null
+						},
+						{
+							"key": "68cc5461b2130955f0075bb1",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DBI_02 - Delete by ID fail - unfound ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response has a message property\", function () {\r",
+							"    const response = pm.response.json();\r",
+							"    pm.expect(response).to.have.property('message');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response has a stack property\", function () {\r",
+							"    const response = pm.response.json();\r",
+							"    pm.expect(response).to.have.property('stack');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/?1234567",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						""
+					],
+					"query": [
+						{
+							"key": "1234567",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OGZhOWRlNzQ3MDYwYmRmYmM1N2EiLCJpYXQiOjE3NTgxNzA5MTMsImV4cCI6MTc2MDc2MjkxM30.iE-DPenRDul12tDmYLZ_HJp8TA0_26SrHxXbIOfV7hk",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

@@ -16,6 +16,18 @@ const collectionConfigs = [
     col: './api-test/collections/signup_login_logout.postman_collection.json',
     env: './api-test/environments/signup_login_logout.postman_environment.json',
   },
+  {
+     col: './api-test/collections/usersAPI_Admin token.postman_collection.json',
+     env: './api-test/environments/usersAPI.postman_environment.json',
+},
+{
+     col: './api-test/collections/usersAPI_Non-Admin token.postman_collection.json',
+     env: './api-test/environments/usersAPI.postman_environment.json',
+}
+{
+     col: './api-test/collections/usersAPI_Missing token.postman_collection.json',
+     env: './api-test/environments/usersAPI.postman_environment.json',
+}
 ];
 
 collectionConfigs.forEach((config) => {

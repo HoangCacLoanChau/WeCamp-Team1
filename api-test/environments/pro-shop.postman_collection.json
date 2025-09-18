@@ -1,0 +1,659 @@
+{
+	"info": {
+		"_postman_id": "ae9e0160-343b-44c1-ba93-6dba962bb9d1",
+		"name": "pro-shop",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "34555055"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Admin Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const cookie = pm.cookies.get(\"jwt\");\r",
+									"pm.environment.set(\"adminToken\", cookie);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"admin@email.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{url}}/users/auth"
+					},
+					"response": []
+				},
+				{
+					"name": "Customer Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const cookie = pm.cookies.get(\"jwt\");\r",
+									"pm.environment.set(\"customerToken\", cookie);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"capstone.test@gmail.com\",\r\n    \"password\": \"1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{url}}/users/auth"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get all orders",
+			"item": [
+				{
+					"name": "OD-01",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"200 OK\", () => pm.response.to.have.status(200));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Body is array\", () => pm.expect(Array.isArray(data)).to.be.true);\r",
+									"pm.test(\"Order shape (spot-check)\", () => {\r",
+									"  const o = data[0] || {};\r",
+									"  pm.expect(o).to.have.property(\"_id\");\r",
+									"  pm.expect(o).to.have.property(\"orderItems\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{adminToken}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{url}}/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-02",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"404 Not Found\", () => pm.response.to.have.status(404));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"Order not found\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{adminToken}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{url}}/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-03",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"401 Unauthorized\", () => pm.response.to.have.status(401));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"Not authorized\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{customerToken}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{url}}/orders"
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Create new order",
+			"item": [
+				{
+					"name": "OD-04",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"201 Created\", () => pm.expect([200,201]).to.include(pm.response.code));\r",
+									"const o = pm.response.json();\r",
+									"pm.environment.set(\"orderId\", o._id || \"\");\r",
+									"pm.test(\"Saved orderId\", () => pm.expect(pm.environment.get(\"orderId\")).to.not.eql(\"\"));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"orderItems\": [\r\n    {\r\n      \"_id\": \"68b01c61ef175adb20697911\",\r\n      \"name\": \"iPhone 13 Pro 256GB Memory\",\r\n      \"image\": \"/images/phone.jpg\",\r\n      \"qty\": 1\r\n    }\r\n  ],\r\n  \"shippingAddress\": {\r\n    \"address\": \"123 Street\",\r\n    \"city\": \"HCMC\",\r\n    \"postalCode\": \"70000\",\r\n    \"country\": \"Vietnam\"\r\n  },\r\n  \"paymentMethod\": \"PayPal\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{url}}/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-05",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"500 Internal Server Error\", () => pm.response.to.have.status(500));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"Cannot read properties of undefined\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"orderItems\": [\r\n    {\r\n      \"_id\": \"6706185c48cdc3a36dd56893\",\r\n      \"name\": \"iPhone 13 Pro 256GB Memory\",\r\n      \"image\": \"/images/phone.jpg\",\r\n      \"qty\": 1\r\n    }\r\n  ],\r\n  \"shippingAddress\": {\r\n    \"address\": \"123 Street\",\r\n    \"city\": \"HCMC\",\r\n    \"postalCode\": \"70000\",\r\n    \"country\": \"Vietnam\"\r\n  },\r\n  \"paymentMethod\": \"PayPal\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{url}}/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-06",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"No order items\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"orderItems\": [],\r\n  \"shippingAddress\": {\r\n    \"address\": \"123 Street\",\r\n    \"city\": \"HCMC\",\r\n    \"postalCode\": \"70000\",\r\n    \"country\": \"Vietnam\"\r\n  },\r\n  \"paymentMethod\": \"PayPal\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{url}}/orders"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get logged-in user orders",
+			"item": [
+				{
+					"name": "OD-07",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"200 OK\", () => pm.response.to.have.status(200));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Body is array\", () => pm.expect(Array.isArray(data)).to.be.true);\r",
+									"pm.test(\"Order shape (spot-check)\", () => {\r",
+									"  const o = data[0] || {};\r",
+									"  pm.expect(o).to.have.property(\"_id\");\r",
+									"  pm.expect(o).to.have.property(\"orderItems\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{url}}/orders/mine"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-08",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"500 Internal Server Error\", () => pm.response.to.have.status(500));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"Cast to ObjectId failed\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{url}}/orders/myorders"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get order by ID",
+			"item": [
+				{
+					"name": "OD-09",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"200 OK\", () => pm.response.to.have.status(200));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"ID matches\", () => pm.expect(data._id).to.eql(pm.environment.get(\"orderId\")));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": "{{url}}/orders/{{orderId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-10",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"404 Not Found\", () => pm.response.to.have.status(404));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"Order not found\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": "{{url}}/orders/{{nonexistID}}"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-11",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"500 Internal Server Error\", () => pm.response.to.have.status(500));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"Cast to ObjectId failed\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": "{{url}}/orders/{{invalidID}}"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Update order to delivered",
+			"item": [
+				{
+					"name": "OD-12",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{adminToken}}"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"url": "{{url}}/orders/{{orderId}}/deliver"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-13",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"404 Not Found\", () => pm.response.to.have.status(404));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"Cast to ObjectId failed\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{adminToken}}"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"url": "{{url}}/orders/{{nonexistID}}/deliver"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-14",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"500 Internal Server Error\", () => pm.response.to.have.status(500));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"Cast to ObjectId failed\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{adminToken}}"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"url": "{{url}}/orders/{{invalidID}}/deliver"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-15",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"500 Internal Server Error\", () => pm.response.to.have.status(500));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"already delivered\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{adminToken}}"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"url": "{{url}}/orders/68b02426634c5860dc299a82/deliver"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-16",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"401 Unauthorized\", () => pm.response.to.have.status(401));\r",
+									"const data = pm.response.json();\r",
+									"pm.test(\"Error message is correct\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.include(\"Not authorized\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{customerToken}}"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"url": "{{url}}/orders/{{orderId}}/deliver"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pay for order",
+			"item": [
+				{
+					"name": "OD-17",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": \"1FD13041EF9511613\",\r\n  \"payer\": {\r\n    \"email_address\": \"capstone.test@gmail.com\"\r\n  },\r\n  \"status\": \"Completed\",\r\n  \"update_time\": \"2025-09-13T16:15:31Z\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:5000/api/orders/1FD13041EF9511613/pay"
+					},
+					"response": []
+				},
+				{
+					"name": "OD-19",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": \"1FD13041EF9511613\",\r\n  \"payer\": {\r\n    \"email_address\": \"capstone.test@gmail.com\"\r\n  },\r\n  \"status\": \"Completed\",\r\n  \"update_time\": \"2025-09-13T16:15:31Z\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:5000/api/orders/1FD13041EF9511613/pay"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

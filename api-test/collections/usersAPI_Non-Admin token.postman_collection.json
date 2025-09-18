@@ -1,0 +1,615 @@
+{
+	"info": {
+		"_postman_id": "d7492068-b382-4c19-9db4-6627676dad0b",
+		"name": "Non-Admin token",
+		"description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47948252",
+		"_collection_link": "https://linh-nhi-s-team.postman.co/workspace/Team-Workspace~a2e0114e-98cc-4b1b-8a3d-06a5e2667396/collection/47948252-d7492068-b382-4c19-9db4-6627676dad0b?action=share&source=collection_link&creator=47948252"
+	},
+	"item": [
+		{
+			"name": "get user valid token",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response should be JSON\", function () {\r",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+							"});\r",
+							"\r",
+							"// Assuming a successful response contains a user object with specific properties\r",
+							"pm.test(\"Response should have user object with expected properties\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson).to.have.property(\"_id\");\r",
+							"    pm.expect(responseJson.user).to.have.property(\"name\");\r",
+							"    pm.expect(responseJson.user).to.have.property(\"email\");\r",
+							"    pm.expect(responseJson.user).to.have.property(\"isAdmin\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "ciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OWQzYWJjOTQ4NjM2M2FlYWRmOWIiLCJpYXQiOjE3NTgxNjY5NjMsImV4cCI6MTc2MDc1ODk2M30.VS3cjwJ0Ze5VYj_4oefA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \"email\": \"pblinhnhi@gmail.com\",\r\n  \"password\": \"pqh231180\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/auth",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"auth"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GP_01 - Get Profile successfully",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response has Content-Type header\", function () {\r",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.exist;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body is a valid JSON\", function () {\r",
+							"    pm.expect(pm.response.text()).to.not.be.empty;\r",
+							"    pm.expect(() => JSON.parse(pm.response.text())).to.not.throw();\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OWQzYWJjOTQ4NjM2M2FlYWRmOWIiLCJpYXQiOjE3NTgxNjY5NjMsImV4cCI6MTc2MDc1ODk2M30.VS3cjwJ0Ze5VYj_4oefAXiD5H4j5KZ8QCalcLoQ9TsQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/users/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GP_03 - Get Profile failed - invalid token",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Gỡ mọi header auth kế thừa\r",
+							"pm.request.headers.remove(\"Authorization\");\r",
+							"pm.request.headers.remove(\"Cookie\");\r",
+							"\r",
+							"// Tạo token \"sai\": ưu tiên phá token thật, fallback abc.def.ghi\r",
+							"const real = pm.environment.get(\"valid_token\");\r",
+							"const invalid = real ? real.slice(0, -1) + (real.slice(-1) === \"a\" ? \"b\" : \"a\") : \"abc.def.ghi\";\r",
+							"\r",
+							"// Gắn header Authorization với token sai\r",
+							"pm.request.headers.upsert({ key: \"Authorization\", value: `Bearer ${invalid}` });"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"401 Unauthorized\", () => pm.response.to.have.status(401));\r",
+							"\r",
+							"let body = {};\r",
+							"try { body = pm.response.json(); } catch(e){}\r",
+							"\r",
+							"pm.test(\"Message indicates invalid/expired\", () => {\r",
+							"  const msg = String(body.message || \"\").toLowerCase();\r",
+							"  pm.expect(/(invalid|expired|token failed|malformed)/.test(msg)).to.be.true;\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "ciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OWQzYWJjOTQ4NjM2M2FlYWRmOWIiLCJpYXQiOjE3NTgxNjY5NjMsImV4cCI6MTc2MDc1ODk2M30.VS",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/users/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UP_01 - Update Profile successfully",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Lấy token từ Environment (Current Value)\r",
+							"const token = pm.environment.get('valid_token');\r",
+							"\r",
+							"pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });\r",
+							"\r",
+							"if (token && token.trim()) {\r",
+							"  pm.request.headers.upsert({ key: 'Authorization', value: `Bearer ${token.trim()}` });\r",
+							"} else {\r",
+							"  console.warn('[UP_01] valid_token is missing in the active Environment');\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 1) Status phải 200 OK\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// 2) Content-Type là JSON\r",
+							"pm.test(\"Content-Type is application/json\", function () {\r",
+							"  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+							"});\r",
+							"\r",
+							"// 3) Parse JSON an toàn\r",
+							"let jsonData = {};\r",
+							"try { jsonData = pm.response.json(); } catch (e) {}\r",
+							"\r",
+							"pm.test(\"Response has required fields with correct types\", function () {\r",
+							"  pm.expect(jsonData).to.have.property(\"_id\");\r",
+							"  pm.expect(jsonData._id).to.be.a(\"string\");\r",
+							"\r",
+							"  pm.expect(jsonData).to.have.property(\"name\");\r",
+							"  pm.expect(jsonData.name).to.be.a(\"string\");\r",
+							"\r",
+							"  pm.expect(jsonData).to.have.property(\"email\");\r",
+							"  pm.expect(jsonData.email).to.be.a(\"string\");\r",
+							"\r",
+							"  pm.expect(jsonData).to.have.property(\"isAdmin\");\r",
+							"  pm.expect(jsonData.isAdmin).to.be.a(\"boolean\");\r",
+							"});\r",
+							"\r",
+							"// 4) So khớp với dữ liệu gửi lên\r",
+							"const rawReq = pm.variables.replaceIn(pm.request.body?.raw || \"{}\");\r",
+							"let reqBody = {};\r",
+							"try { reqBody = JSON.parse(rawReq); } catch (e) {}\r",
+							"\r",
+							"pm.test(\"Name is updated correctly\", function () {\r",
+							"  if (reqBody.name) {\r",
+							"    pm.expect(jsonData.name).to.eql(reqBody.name);\r",
+							"  }\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Email is updated correctly\", function () {\r",
+							"  if (reqBody.email) {\r",
+							"    pm.expect(jsonData.email).to.eql(reqBody.email);\r",
+							"  }\r",
+							"});\r",
+							"\r",
+							"// 5) Email đúng định dạng cơ bản\r",
+							"pm.test(\"Email has valid format\", function () {\r",
+							"  const emailRe = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\r",
+							"  pm.expect(emailRe.test(jsonData.email)).to.be.true;\r",
+							"});\r",
+							"\r",
+							"// (Tuỳ chọn) Đảm bảo Authorization header đã được gửi\r",
+							"pm.test(\"Authorization header is present\", function () {\r",
+							"  const auth = pm.request.headers.get(\"Authorization\");\r",
+							"  pm.expect(auth).to.match(/^Bearer\\s+.+/);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "ciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OWQzYWJjOTQ4NjM2M2FlYWRmOWIiLCJpYXQiOjE3NTgxNjY5NjMsImV4cCI6MTc2MDc1ODk2M30.VS3cjwJ0Ze5VYj_4oefA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"New Name\",\r\n  \"email\": \"pblinhnhi@gmail.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UP_03 - Update Profile failed - invalid format",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Lấy token từ Environment (Current Value)\r",
+							"const token = pm.environment.get('valid_token');\r",
+							"\r",
+							"pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });\r",
+							"\r",
+							"if (token && token.trim()) {\r",
+							"  pm.request.headers.upsert({ key: 'Authorization', value: `Bearer ${token.trim()}` });\r",
+							"} else {\r",
+							"  console.warn('[UP_01] valid_token is missing in the active Environment');\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status is 400 or 422\", () => {\r",
+							"  pm.expect([400, 422]).to.include(pm.response.code);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "ciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OWQzYWJjOTQ4NjM2M2FlYWRmOWIiLCJpYXQiOjE3NTgxNjY5NjMsImV4cCI6MTc2MDc1ODk2M30.VS3cjwJ0Ze5VYj_4oefA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"New Name\",\r\n    \"email\":\"123\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GAU_02 - Get all Users failed - Non-admin user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(401);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Error message: Not authorized as an admin\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson).to.have.property(\"message\");\r",
+							"    pm.expect(responseJson.message).to.equal(\"Not authorized as an admin\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OGZhOWRlNzQ3MDYwYmRmYmM1N2EiLCJpYXQiOjE3NTgxNzA5MTMsImV4cCI6MTc2MDc2MjkxM30.iE-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OWQzYWJjOTQ4NjM2M2FlYWRmOWIiLCJpYXQiOjE3NTgxNjY5NjMsImV4cCI6MTc2MDc1ODk2M30.VS3cjwJ0Ze5VYj_4oefAXiD5H4j5KZ8QCalcLoQ9TsQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UBI_05 - Update by ID failed - nonAdmin account",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(401);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Response contains error message\", function () {\r",
+							"    pm.expect(response.message).to.exist;\r",
+							"    pm.expect(response.message).to.be.a('string');\r",
+							"    pm.expect(response.message).to.eql('Not authorized as an admin');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"john@email.com\",\r\n  \"isAdmin\": false,\r\n  \"name\": \"John đặng\"\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/68c99d3abc9486363aeadf9b",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"68c99d3abc9486363aeadf9b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DBI_03 - Delete by ID failed - nonAdmin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Error message is Can not delete admin user\", function () {\r",
+							"    const responseBody = pm.response.json();\r",
+							"    pm.expect(responseBody.message).to.equal(\"Can not delete admin user\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/?68c99d3abc9486363aeadf9b",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						""
+					],
+					"query": [
+						{
+							"key": "68c99d3abc9486363aeadf9b",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM5OWQzYWJjOTQ4NjM2M2FlYWRmOWIiLCJpYXQiOjE3NTgxNzE3ODksImV4cCI6MTc2MDc2Mzc4OX0.3iFqwCRh-g4J6kFTRL-tlBtE4UfwLlcedqfqMuQzjVg",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}

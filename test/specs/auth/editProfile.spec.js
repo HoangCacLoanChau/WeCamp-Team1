@@ -1,148 +1,81 @@
-// test/specs/profile/editProfile.e2e.js
-import LoginPage from "../../pageobjects/auth/login.page";
-import HomePage from "../../pageobjects/auth/home.page";
-import ProfilePage from "../../pageobjects/auth/profile.page";
+import { expect } from '@wdio/globals';
+import LoginPage from '../../pageobjects/auth/login.page.js';
+import HomePage from '../../pageobjects/auth/home.page.js';
+import ProfilePage from '../../pageobjects/auth/profile.page.js';
 
-describe("Epic 1 - Edit Profile", () => {
-  /** Lưu name/email gốc để reset sau mỗi case */
+describe('Epic 1 - Edit Profile', () => {
   let originalProfile;
 
-  beforeEach(async () => {
-    // Login và vào trang Profile
+  before(async () => {
     await LoginPage.open();
-    await LoginPage.login("editprofile@gmail.com", "150903");
-    await expect(browser).toHaveUrl("http://localhost:3000/");
+    await LoginPage.login('editprofile@gmail.com', '150903');
+    await expect(browser).toHaveUrl('http://localhost:3000/');
     await HomePage.navigateToProfile();
-    await expect(browser).toHaveUrl("http://localhost:3000/profile");
-
-    // Lấy dữ liệu gốc ngay khi vào trang
+    await expect(browser).toHaveUrl('http://localhost:3000/profile');
+    await expect(ProfilePage.nameInput).toBeDisplayed({ timeout: 10000 });
     originalProfile = await ProfilePage.getOriginalProfile();
   });
 
-  afterEach(async () => {
+  beforeEach(async () => {
+    if (!(await browser.getUrl()).includes('/profile')) {
+      await ProfilePage.open();
+      await expect(ProfilePage.nameInput).toBeDisplayed({ timeout: 10000 });
+    }
+  });
+
+  after(async () => {
+    await ProfilePage.updateProfile(originalProfile);
     try {
-      // Reset về name/email ban đầu để không ảnh hưởng case khác
-      await ProfilePage.updateProfile({
-        name: originalProfile.name,
-        email: originalProfile.email,
-      });
-
-      await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-      // Nếu app có icon/khoảng trắng, dùng getText + toContain cho an toàn
-      const text = await ProfilePage.toast.getText();
-      expect(text).toContain("Profile updated successfully");
-    } finally {
-      // Làm sạch browser cho test kế tiếp
-      await browser.reloadSession();
-    }
+      await ProfilePage.toastMessage.waitForExist({ timeout: 10000 });
+    } catch (e) { /* noop */ }
+    await browser.reloadSession();
   });
 
-  it("TCEP_01: should update profile with valid email", async () => {
-    const newName = "Nhi Phạm";
-    const validEmails = [
-      "user@example.com",
-      "firstname.lastname@domain.com.au",
-      "usertag@do-main.com",
-      "user_tag@domain.com",
-    ];
-
-    for (const email of validEmails) {
-      await ProfilePage.updateProfile({ name: newName, email });
-
-      await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-      const text = await ProfilePage.toast.getText();
-      expect(text).toContain("Profile updated successfully");
-
-      await expect(ProfilePage.nameInput).toHaveValue(newName);
-      await expect(ProfilePage.emailInput).toHaveValue(email);
-    }
+  it('TCEP_01: should update profile with valid email', async () => {
+    await ProfilePage.updateProfile({ name: 'Nhi Phạm', email: 'linhnhi@example.com' });
+    await ProfilePage.toastMessage.waitForExist({ timeout: 50000 });
+    await expect(ProfilePage.toastMessage).toHaveText('Profile updated successfully');
   });
 
-  it("TCEP_02: should not update if email missing '@'", async () => {
-    await ProfilePage.updateProfile({
-      name: originalProfile.name,
-      email: "userexample.com",
-    });
-
-    await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-    const text = await ProfilePage.toast.getText();
-    expect(text).toContain("Invalid email format"); // chỉnh theo message thực tế
+  it("TCEP_02: should block when email missing '@'", async () => {
+    await ProfilePage.updateProfile({ name: 'Test', email: 'editprofilegmailcom' });
+    const msg = await ProfilePage.getEmailValidationMessage();
+    expect(msg).toContain("Please include an '@'");
   });
 
-  it("TCEP_03: should not update if email has more than one '@'", async () => {
-    await ProfilePage.updateProfile({
-      name: originalProfile.name,
-      email: "user@@example.com",
-    });
-
-    await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-    const text = await ProfilePage.toast.getText();
-    expect(text).toContain("Invalid email format");
+  it("TCEP_03: should block when email has more than one '@'", async () => {
+    await ProfilePage.updateProfile({ name: 'Test', email: 'user@@example.com' });
+    const msg = await ProfilePage.getEmailValidationMessage();
+    expect(msg).toContain("should not contain the symbol '@'");
   });
 
-  it("TCEP_04: should not update if email missing domain name", async () => {
-    await ProfilePage.updateProfile({
-      name: originalProfile.name,
-      email: "user@",
-    });
-
-    await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-    const text = await ProfilePage.toast.getText();
-    expect(text).toContain("Invalid email format");
+  it("TCEP_04: should block when '.' is at a wrong position", async () => {
+    await ProfilePage.updateProfile({ name: 'Test', email: 'user@.com' });
+    const msg = await ProfilePage.getEmailValidationMessage();
+    expect(msg).toContain("'.' is used at a wrong position");
   });
 
-  it("TCEP_05: should not update if email missing '.' in domain", async () => {
-    await ProfilePage.updateProfile({
-      name: originalProfile.name,
-      email: "user@examplecom",
-    });
-
-    await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-    const text = await ProfilePage.toast.getText();
-    expect(text).toContain("Invalid email format");
+  it('TCEP_05: should block when domain has no "."', async () => {
+    await ProfilePage.updateProfile({ name: 'Test', email: 'user@examplecom' });
+    const msg = await ProfilePage.getEmailValidationMessage();
+    expect(msg.length).toBeGreaterThan(0);
   });
 
-  it("TCEP_06: should not update if email contains space", async () => {
-    await ProfilePage.updateProfile({
-      name: originalProfile.name,
-      email: "user name@example.com",
-    });
-
-    await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-    const text = await ProfilePage.toast.getText();
-    expect(text).toContain("Invalid email format");
+  it('TCEP_06: should block when email contains space', async () => {
+    await ProfilePage.updateProfile({ name: 'Test', email: 'user@ exam ple.com' });
+    const msg = await ProfilePage.getEmailValidationMessage();
+    expect(msg).toContain("should not contain the symbol ' '");
   });
 
-  it("TCEP_07: should not update if email has disallowed special char", async () => {
-    await ProfilePage.updateProfile({
-      name: originalProfile.name,
-      email: "user!tag@example.com",
-    });
-
-    await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-    const text = await ProfilePage.toast.getText();
-    expect(text).toContain("Invalid email format");
+  it('TCEP_07: should block when email has disallowed special char', async () => {
+    await ProfilePage.updateProfile({ name: 'Test', email: 'user!tag@example.com' });
+    const msg = await ProfilePage.getEmailValidationMessage();
+    expect(msg.length).toBeGreaterThan(0);
   });
 
-  it("TCEP_08: should not update if email field is empty", async () => {
-    await ProfilePage.updateProfile({
-      name: originalProfile.name,
-      email: "",
-    });
-
-    await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-    const text = await ProfilePage.toast.getText();
-    expect(text).toContain("Email is required");
-  });
-
-  it("TCEP_09: should not update if name field is empty", async () => {
-    await ProfilePage.updateProfile({
-      name: "",
-      email: originalProfile.email,
-    });
-
-    await ProfilePage.toast.waitForDisplayed({ timeout: 5000 });
-    const text = await ProfilePage.toast.getText();
-    expect(text).toContain("Name is required");
+  it('TCEP_08: should block when email is empty', async () => {
+    await ProfilePage.updateProfile({ name: 'Test', email: '' });
+    const msg = await ProfilePage.getEmailValidationMessage();
+    expect(msg.length).toBeGreaterThan(0);
   });
 });

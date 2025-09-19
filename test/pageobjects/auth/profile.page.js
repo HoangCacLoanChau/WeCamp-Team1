@@ -1,39 +1,45 @@
 import Page from "../page";
 
 class ProfilePage extends Page {
-  get nameInput() { return $('#name'); }
-  get emailInput() { return $('#email'); }
-  get passwordInput() { return $('#password'); }
-  get confirmPasswordInput() { return $('#confirmPassword'); }
-  get saveBtn() { return $('button[type="submit"]'); }
-  get toast() { return $('Toastify__toast Toastify__toast-theme--light Toastify__toast--success Toastify__toast--close-on-click'); }
+  get nameInput()             { return $('#name'); }
+  get emailInput()            { return $('#email'); }
+  get passwordInput()         { return $('#password'); }
+  get confirmPasswordInput()  { return $('#confirmPassword'); }
+  get saveBtn()               { return $('#root > main > div > div > div.col-md-3 > form > button'); }
 
-  async updateProfile({ name, email }) {
-    if (name !== undefined) {
-      await this.nameInput.waitForDisplayed({ timeout: 5000 });
-      await this.nameInput.click();
-      await this.nameInput.clearValue();
-      await this.nameInput.setValue(name);
-    }
+  // Toast message hiển thị thông báo thành công/ password missmatch
+  get toastMessage() {
+    return $('.Toastify__toast-body div:nth-child(2)'); 
+  }
 
-    if (email !== undefined) {
-      await this.emailInput.waitForDisplayed({ timeout: 5000 });
-      await this.emailInput.click();
-      await this.emailInput.clearValue();
-      await this.emailInput.setValue(email);
-    }
+ async clearAndType(el, value) {
+    await el.click();
+    await el.clearValue();
+    await el.setValue(value);
+  }
 
-    await this.saveBtn.waitForClickable({ timeout: 5000 });
+  // nhận object như đang dùng trong spec
+  async updateProfile({ name, email, password, confirmPassword } = {}) {
+    if (name !== undefined)            await this.clearAndType(this.nameInput, name);
+    if (email !== undefined)           await this.clearAndType(this.emailInput, email);
+    if (password !== undefined)        await this.clearAndType(this.passwordInput, password);
+    if (confirmPassword !== undefined) await this.clearAndType(this.confirmPasswordInput, confirmPassword);
     await this.saveBtn.click();
-    await this.toast.waitForDisplayed({ timeout: 5000 });
+    await browser.pause(800);
   }
 
   async getOriginalProfile() {
-    await this.nameInput.waitForDisplayed({ timeout: 5000 });
-    const name = await this.nameInput.getValue();
-    const email = await this.emailInput.getValue();
-    return { name, email };
+    return {
+      name:  await this.nameInput.getValue(),
+      email: await this.emailInput.getValue(),
+    };
   }
-}
 
+  // lấy thông báo validate HTML5 (cho những case lỗi)
+  async getEmailValidationMessage() {
+    return await this.emailInput.getProperty('validationMessage');
+  }
+
+  async open() { await super.open('profile'); }
+}
 export default new ProfilePage();

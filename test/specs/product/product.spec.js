@@ -1,6 +1,7 @@
 import ProductPage from "../../pageobjects/product/product.page";
 
 describe("View product", () => {
+  // return all product
   it("should open homepage with a list of all product", async () => {
     await ProductPage.openHomePage();
     // check if there container

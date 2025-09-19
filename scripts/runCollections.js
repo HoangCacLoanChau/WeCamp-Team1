@@ -28,6 +28,10 @@ const collectionConfigs = [
     col: "./api-test/collections/usersAPI_Missing token.postman_collection.json",
     env: "./api-test/environments/usersAPI.postman_environment.json",
   },
+  {
+    col: "./api-test/collections/Product.postman_collection.json",
+    env: "./api-test/environments/Product.postman_environment.json",
+  },
 ];
 
 collectionConfigs.forEach((config) => {

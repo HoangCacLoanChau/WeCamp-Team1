@@ -1,6 +1,6 @@
 import LoginPage from "../../pageobjects/auth/login.page";
-import HomePage from "../../pageobjects/auth/home.page";
 import ProfilePage from "../../pageobjects/auth/profile.page";
+import HomePage from "../../pageobjects/home.page";
 
 describe("Login and Profile navigation", () => {
   afterEach(async () => {
@@ -22,7 +22,7 @@ describe("Login and Profile navigation", () => {
     await expect(ProfilePage.emailInput).toBeDisplayed();
   });
 
-  it('should display profile information (Name, Email) and empty Password fields', async () => {
+  it("should display profile information (Name, Email) and empty Password fields", async () => {
     await LoginPage.open();
     await LoginPage.login("admin@email.com", "123456");
     await expect(browser).toHaveUrl("http://localhost:3000/");

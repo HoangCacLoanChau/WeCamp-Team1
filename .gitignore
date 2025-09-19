@@ -24,5 +24,3 @@ coverage/
 .env
 .env.local
 
-# Test api reports
-api-test/reports/

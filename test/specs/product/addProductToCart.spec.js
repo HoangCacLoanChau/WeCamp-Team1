@@ -1,4 +1,14 @@
+import HomePageProduct from "../../pageobjects/home.page.product";
+import ProductPage from "../../pageobjects/product/product.page";
 describe("Adding product to cart", () => {
+  beforeEach(async () => {
+    await ProductPage.openHomePage();
+  });
+  it.only("should open a product with valid id", async () => {
+    const href = await HomePageProduct.getFirstProductHref();
+    await HomePageProduct.openFirstProduct();
+    await expect(browser).toHaveUrl(expect.stringContaining(href));
+  });
   it("TCPO_01: Verify that a user can successfully add product to cart", () => {});
   it("TCPO_02: Verify that a user can add the same product multiple times", () => {});
   it("TCPO_03: Verify that user can add many different product to cart successfully", () => {});

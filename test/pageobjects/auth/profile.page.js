@@ -1,39 +1,62 @@
-// POM: Profile Page
 import Page from "../page";
 
 class ProfilePage extends Page {
-  // ===== selectors =====
-  get nameInput() { return $("#name"); }
-  get emailInput() { return $("#email"); }
-  get passwordInput() { return $("#password"); }
-  get confirmPasswordInput() { return $("#confirmPassword"); }
-  get updateButton() { return $("#root > main > div > div > div.col-md-3 > form > button"); }
-  get toast() { return $(".Toastify__toast-body div:nth-child(2)"); }
+  get nameInput() {
+    return $("#name");
+  }
+  get emailInput() {
+    return $("#email");
+  }
+  get passwordInput() {
+    return $("#password");
+  }
+  get confirmPasswordInput() {
+    return $("#confirmPassword");
+  }
+  get saveBtn() {
+    return $("#root > main > div > div > div.col-md-3 > form > button");
+  }
 
-  // ===== actions =====
+  // Toast message hiển thị thông báo thành công/ password missmatch
+  get toastMessage() {
+    return $('//div[contains(text(),"Profile updated successfully")]');
+  }
+  get toastMessageFail() {
+    return $('//div[contains(text(),"Passwords do not match")]');
+  }
+
+  // clear and type
+  async clearAndType(el, value) {
+    await el.click();
+    await el.clearValue();
+    await el.setValue(value);
+  }
+
+  // nhận object như đang dùng trong spec
+  async updateProfile({ name, email, password, confirmPassword } = {}) {
+    if (name !== undefined) await this.clearAndType(this.nameInput, name);
+    if (email !== undefined) await this.clearAndType(this.emailInput, email);
+    if (password !== undefined) await this.clearAndType(this.passwordInput, password);
+    if (confirmPassword !== undefined)
+      await this.clearAndType(this.confirmPasswordInput, confirmPassword);
+    await this.saveBtn.click();
+    // await browser.pause(800);
+  }
+
+  async getOriginalProfile() {
+    return {
+      name: await this.nameInput.getValue(),
+      email: await this.emailInput.getValue(),
+    };
+  }
+
+  // lấy thông báo validate HTML5 (cho những case lỗi)
+  async getEmailValidationMessage() {
+    return await this.emailInput.getProperty("validationMessage");
+  }
+
   async open() {
-    // /profile trong app ProShop
     await super.open("profile");
   }
-
-  async updateProfile({ name, email, password, confirmPassword } = {}) {
-    // name & email có thể đã có sẵn -> clear trước khi gõ lại
-    if (name !== undefined) {
-      await this.nameInput.clearValue();
-      await this.nameInput.setValue(name);
-    }
-    if (email !== undefined) {
-      await this.emailInput.clearValue();
-      await this.emailInput.setValue(email);
-    }
-    if (password !== undefined) {
-      await this.passwordInput.setValue(password);
-    }
-    if (confirmPassword !== undefined) {
-      await this.confirmPasswordInput.setValue(confirmPassword);
-    }
-    await this.updateButton.click();
-  }
 }
-
 export default new ProfilePage();

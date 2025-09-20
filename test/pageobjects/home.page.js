@@ -4,6 +4,9 @@ class HomePage extends Page {
   async open() {
     await super.open("");
   }
+  get cartIconCount() {
+    return $(".badge");
+  }
 
   // Profile
   get userMenu() {

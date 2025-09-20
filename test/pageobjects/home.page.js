@@ -45,12 +45,6 @@ class HomePage extends Page {
 
   async getProductHref(index = 0) {
     const links = await this.allProductLinks();
-    if (!links || links.length === 0) {
-      throw new Error("No product links found on page");
-    }
-    if (index < 0 || index >= links.length) {
-      throw new Error(`Product index ${index} is out of bounds`);
-    }
     return await links[index].getAttribute("href");
   }
 

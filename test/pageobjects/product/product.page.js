@@ -28,6 +28,22 @@ class ProductPage extends Page {
   async openHomePage() {
     await super.open("");
   }
+  // stock check
+
+  // Get stock status text
+  get stockStatus() {
+    return $(
+      "#root > main > div > div:nth-child(2) > div:nth-child(3) > div > div > div:nth-child(2) > div > div:nth-child(2)",
+    );
+  }
+  async getStockText() {
+    const el = await this.stockStatus;
+    return await el.getText();
+  }
+
+  async isAddToCartEnabled() {
+    return await this.addToCartBtn.isEnabled();
+  }
 }
 
 export default new ProductPage();

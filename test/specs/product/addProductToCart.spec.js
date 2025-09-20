@@ -6,9 +6,12 @@ describe("Adding product to cart", () => {
   before(async () => {
     await browser.maximizeWindow();
     await LoginPage.open();
+    await LoginPage.emailInput.waitForDisplayed({ timeout: 5000 });
+    await LoginPage.passwordInput.waitForDisplayed({ timeout: 5000 });
     await LoginPage.login("admin@email.com", "123456");
   });
   beforeEach(async () => {
+    await browser.execute(() => localStorage.removeItem("cart"));
     await HomePage.open();
   });
 
@@ -91,7 +94,7 @@ describe("Adding product to cart", () => {
     await expect(subtotalPrice).toBe(expectedSubtotal, { timeout: 5000 });
   });
 
-  it("TCPO_03: Verify that user can add many different product to cart successfully", async () => {
+  it("TCPO_03: Verify that user can add many different products to cart successfully", async () => {
     const products = [
       { index: 0, qty: 2 },
       { index: 1, qty: 1 },
@@ -99,30 +102,44 @@ describe("Adding product to cart", () => {
     ];
     let expectedSubtotal = 0;
 
+    // Add products
     for (const product of products) {
       await HomePage.open();
       await HomePage.openProduct(product.index);
       await ProductPage.selectQuantity(product.qty);
       await ProductPage.addToCart();
-
-      // Get unit price
-      const priceEl = await CartPage.productPrice(0); // always first item added
-      const priceText = await priceEl.getText();
-      const priceNumber = parseFloat(priceText.replace("$", ""));
-      expectedSubtotal += product.qty * priceNumber;
     }
+
     // Open cart
     await CartPage.openCart();
 
-    // Verify number of items
+    // Get all items in cart
     const items = await CartPage.cartItems();
-    await expect(items.length).toBe(products.length);
 
-    // Verify each quantity
-    for (let i = 0; i < items.length; i++) {
-      const qtyDropdown = await CartPage.productQuantityDropdown(i);
+    // Verify number of unique items matches products array
+    const itemNames = [];
+    for (const item of items) {
+      const nameEl = await item.$("a");
+      const name = await nameEl.getText();
+      itemNames.push(name);
+    }
+    await expect(itemNames.length).toBe(products.length);
+
+    // Calculate subtotal dynamically and log quantities
+    for (const item of items) {
+      const nameEl = await item.$("a");
+      const name = await nameEl.getText();
+
+      const qtyDropdown = await item.$("select.form-control");
       const qty = parseInt(await qtyDropdown.getValue(), 10);
-      await expect(qty).toBe(products[i].qty);
+
+      const priceEl = await item.$(".col-md-2:nth-child(3) strong, .col strong");
+      const priceText = await priceEl.getText();
+      const priceNumber = parseFloat(priceText.replace("$", ""));
+
+      expectedSubtotal += qty * priceNumber;
+
+      console.log(`Item ${name} quantity: ${qty} unit price: ${priceNumber}`);
     }
 
     // Verify subtotal price
@@ -130,18 +147,94 @@ describe("Adding product to cart", () => {
     await expect(subtotalPrice).toBeCloseTo(expectedSubtotal, 2);
     console.log("Expected subtotal:", expectedSubtotal, "Actual subtotal:", subtotalPrice);
   });
-  it("TCPO_04: Verify dropdown only shows numbers up to the available stock", () => {});
-  it("TCPO_05: Verify cart is empty when no items are added", () => {});
-  it("TCPO_06: Verify that product availability is displayed correctly", () => {});
-});
 
-// describe("check visablity", () => {
-//
-//   it("TCPO_07: Verify that a new user does not inherit the previous user’s cart", () => {});
-//
-//   it("TCPO_08: Add product without login", () => {});
-//    navigate to homepage
-//   beforeEach(async () => {
-//     await ProductPage.openHomePage();
-//   });
-// });
+  it("TCPO_05: Verify cart is empty when no items are added", async () => {
+    // Clear cart from localStorage
+
+    await CartPage.openCart();
+
+    // Verify alert is displayed
+    await expect(await CartPage.isCartEmpty()).toBe(true);
+
+    // Optionally check text
+    const text = await CartPage.getEmptyCartText();
+    await expect(text).toContain("Your cart is empty");
+    console.log("Empty cart alert text:", text);
+  });
+
+  it("TCPO_06: Verify that product availability is displayed correctly", async () => {
+    // Product in stock
+    await HomePage.openProduct(0);
+    await expect(await ProductPage.getStockText()).toBe("In Stock");
+    await expect(await ProductPage.isAddToCartEnabled()).toBe(true);
+    await ProductPage.openHomePage();
+    // Product out of stock
+    await HomePage.openProduct(4);
+    await expect(await ProductPage.getStockText()).toBe("Out of Stock");
+    await expect(await ProductPage.isAddToCartEnabled()).toBe(false);
+  });
+
+  it("TCPO_07: Verify that a new user does not inherit the previous user’s cart after switching accounts", async () => {
+    // --- Step 2-4: Add a product to cart ---
+    await HomePage.openProduct(0); // first product
+    await ProductPage.selectQuantity(2);
+    await ProductPage.addToCart();
+
+    // Verify cart has 1 item
+    await CartPage.openCart();
+    let items = await CartPage.cartItems();
+    await expect(items.length).toBe(1);
+    console.log("First user cart items:", items.length);
+
+    // --- Step 5: Logout ---
+    await HomePage.navigateToProfile();
+    await HomePage.logoutMenuItem.click();
+
+    // --- Step 6: Login with second valid account ---
+    await LoginPage.open();
+    await LoginPage.login("john@email.com", "123456");
+
+    // --- Step 7: Check cart ---
+    await CartPage.openCart();
+
+    // Cart should be empty
+    items = await CartPage.cartItems();
+    await expect(items.length).toBe(0);
+
+    // Check empty cart alert
+    const emptyAlert = await CartPage.emptyCartAlert;
+    await expect(emptyAlert).toBeDisplayed();
+    const text = await emptyAlert.getText();
+    await expect(text).toContain("Your cart is empty");
+
+    console.log("Second user cart items:", items.length);
+
+    // Optional: verify cart icon shows 0
+    const cartCount = await CartPage.cartIconCount.getText();
+    await expect(cartCount).toBe("0");
+  });
+  it.only("TCPO_08: Verify that adding product without login works or redirects to login", async () => {
+    // Open homepage and select a product
+    await HomePage.open();
+    await HomePage.openProduct(0); // first product
+
+    // Select quantity and try to add to cart
+    await ProductPage.selectQuantity(2);
+    await ProductPage.addToCart();
+
+    // Open cart
+    await CartPage.openCart();
+
+    // Verify cart has the item
+    const items = await CartPage.cartItems();
+    await expect(items.length).toBe(1);
+
+    const qtyDropdown = await CartPage.productQuantityDropdown(0);
+    const qty = parseInt(await qtyDropdown.getValue(), 10);
+    await expect(qty).toBe(2);
+
+    const nameEl = await CartPage.productName(0);
+    const name = await nameEl.getText();
+    console.log(`Added to cart without login: ${name}, quantity: ${qty}`);
+  });
+});

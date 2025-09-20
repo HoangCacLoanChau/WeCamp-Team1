@@ -64,6 +64,19 @@ class CartPage extends Page {
     const lines = (await text).split("\n");
     return parseFloat(lines[lines.length - 1].replace("$", ""));
   }
+  get emptyCartAlert() {
+    return $("div[role='alert'].alert-info");
+  }
+
+  async isCartEmpty() {
+    const alert = await this.emptyCartAlert;
+    return await alert.isDisplayed();
+  }
+
+  async getEmptyCartText() {
+    const alert = await this.emptyCartAlert;
+    return await alert.getText();
+  }
 
   // Actions
   async selectQuantity(qty, index = 0) {

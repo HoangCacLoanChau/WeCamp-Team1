@@ -5,17 +5,17 @@ import CartPage from "../../pageobjects/product/cart.page";
 describe("Adding product to cart", () => {
   before(async () => {
     await browser.maximizeWindow();
-    await LoginPage.open();
-    await LoginPage.emailInput.waitForDisplayed({ timeout: 5000 });
-    await LoginPage.passwordInput.waitForDisplayed({ timeout: 5000 });
-    await LoginPage.login("admin@email.com", "123456");
   });
   beforeEach(async () => {
-    await browser.execute(() => localStorage.removeItem("cart"));
     await HomePage.open();
+  });
+  afterEach(async () => {
+    await browser.execute(() => localStorage.removeItem("cart"));
   });
 
   it("TCPO_01: Verify that a user can successfully add product to cart", async () => {
+    await LoginPage.open();
+    await LoginPage.login("john@email.com", "123456");
     // Open homepage and first product
     const href = await HomePage.getProductHref(0);
     await HomePage.openProduct(0);
@@ -95,56 +95,79 @@ describe("Adding product to cart", () => {
   });
 
   it("TCPO_03: Verify that user can add many different products to cart successfully", async () => {
-    const products = [
-      { index: 0, qty: 2 },
-      { index: 1, qty: 1 },
-      { index: 2, qty: 3 },
-    ];
     let expectedSubtotal = 0;
 
-    // Add products
-    for (const product of products) {
-      await HomePage.open();
-      await HomePage.openProduct(product.index);
-      await ProductPage.selectQuantity(product.qty);
-      await ProductPage.addToCart();
-    }
+    // Add product 1 (index 0, qty 2)
+    await HomePage.open();
+    await HomePage.openProduct(0);
+    await ProductPage.selectQuantity(2);
+    await ProductPage.addToCart();
+
+    // Add product 2 (index 1, qty 1)
+    await HomePage.open();
+    await HomePage.openProduct(1);
+    await ProductPage.selectQuantity(1);
+    await ProductPage.addToCart();
+
+    // Add product 3 (index 2, qty 3)
+    await HomePage.open();
+    await HomePage.openProduct(2);
+    await ProductPage.selectQuantity(3);
+    await ProductPage.addToCart();
 
     // Open cart
     await CartPage.openCart();
 
     // Get all items in cart
     const items = await CartPage.cartItems();
+    await expect(items.length).toBe(3);
 
-    // Verify number of unique items matches products array
-    const itemNames = [];
-    for (const item of items) {
-      const nameEl = await item.$("a");
-      const name = await nameEl.getText();
-      itemNames.push(name);
-    }
-    await expect(itemNames.length).toBe(products.length);
+    // --- Item 1 ---
+    const nameEl1 = await items[0].$("a");
+    const name1 = await nameEl1.getText();
 
-    // Calculate subtotal dynamically and log quantities
-    for (const item of items) {
-      const nameEl = await item.$("a");
-      const name = await nameEl.getText();
+    const qtyDropdown1 = await items[0].$("select.form-control");
+    const qty1 = parseInt(await qtyDropdown1.getValue(), 10);
 
-      const qtyDropdown = await item.$("select.form-control");
-      const qty = parseInt(await qtyDropdown.getValue(), 10);
+    const priceEl1 = await items[0].$(".col-md-2:nth-child(3) strong, .col strong");
+    const priceText1 = await priceEl1.getText();
+    const price1 = parseFloat(priceText1.replace("$", ""));
 
-      const priceEl = await item.$(".col-md-2:nth-child(3) strong, .col strong");
-      const priceText = await priceEl.getText();
-      const priceNumber = parseFloat(priceText.replace("$", ""));
+    expectedSubtotal += qty1 * price1;
+    console.log(`Item ${name1} quantity: ${qty1} unit price: ${price1}`);
 
-      expectedSubtotal += qty * priceNumber;
+    // --- Item 2 ---
+    const nameEl2 = await items[1].$("a");
+    const name2 = await nameEl2.getText();
 
-      console.log(`Item ${name} quantity: ${qty} unit price: ${priceNumber}`);
-    }
+    const qtyDropdown2 = await items[1].$("select.form-control");
+    const qty2 = parseInt(await qtyDropdown2.getValue(), 10);
 
-    // Verify subtotal price
+    const priceEl2 = await items[1].$(".col-md-2:nth-child(3) strong, .col strong");
+    const priceText2 = await priceEl2.getText();
+    const price2 = parseFloat(priceText2.replace("$", ""));
+
+    expectedSubtotal += qty2 * price2;
+    console.log(`Item ${name2} quantity: ${qty2} unit price: ${price2}`);
+
+    // --- Item 3 ---
+    const nameEl3 = await items[2].$("a");
+    const name3 = await nameEl3.getText();
+
+    const qtyDropdown3 = await items[2].$("select.form-control");
+    const qty3 = parseInt(await qtyDropdown3.getValue(), 10);
+
+    const priceEl3 = await items[2].$(".col-md-2:nth-child(3) strong, .col strong");
+    const priceText3 = await priceEl3.getText();
+    const price3 = parseFloat(priceText3.replace("$", ""));
+
+    expectedSubtotal += qty3 * price3;
+    console.log(`Item ${name3} quantity: ${qty3} unit price: ${price3}`);
+
+    // Verify subtotal
     const subtotalPrice = await CartPage.getSubtotalPrice();
     await expect(subtotalPrice).toBeCloseTo(expectedSubtotal, 2);
+
     console.log("Expected subtotal:", expectedSubtotal, "Actual subtotal:", subtotalPrice);
   });
 
@@ -213,7 +236,7 @@ describe("Adding product to cart", () => {
     const cartCount = await CartPage.cartIconCount.getText();
     await expect(cartCount).toBe("0");
   });
-  it.only("TCPO_08: Verify that adding product without login works or redirects to login", async () => {
+  it("TCPO_08: Verify that adding product without login works or redirects to login", async () => {
     // Open homepage and select a product
     await HomePage.open();
     await HomePage.openProduct(0); // first product

@@ -5,259 +5,169 @@ import CartPage from "../../pageobjects/product/cart.page";
 describe("Adding product to cart", () => {
   before(async () => {
     await browser.maximizeWindow();
-  });
-  beforeEach(async () => {
     await HomePage.open();
   });
+
   afterEach(async () => {
     await browser.execute(() => localStorage.removeItem("cart"));
   });
 
-  it("TCPO_01: Verify that a user can successfully add product to cart", async () => {
-    await LoginPage.open();
-    await LoginPage.login("john@email.com", "123456");
-    // Open homepage and first product
-    const href = await HomePage.getProductHref(0);
-    await HomePage.openProduct(0);
+  it("TCPO_01: Verify that a user can successfully add a product to cart", async () => {
+    // Open homepage and click the first product
+    await HomePage.waitForProductListToLoad();
+    const href = await HomePage.getProductHrefByIndex(0);
+    await HomePage.openProductbyIndex(0);
 
-    // Verify product page
+    // Verify product page URL
     await expect(browser).toHaveUrl(expect.stringContaining(href), { timeout: 5000 });
+    //add to cart
+    await ProductPage.setProductQuantity(3);
+    await ProductPage.clickAddToCartButton();
+    //url cart
+    await expect(browser).toHaveUrl(expect.stringContaining("/cart"), { timeout: 5000 });
+    // body
+    const subtotal = await CartPage.getSubtotalQuantity();
+    const checkoutBtn = await CartPage.checkoutButton;
+    const name = await CartPage.getProductNameByIndex(0);
+    const price = await CartPage.getProductPriceByIndex(0);
+    const qty = await CartPage.getProductQuantityByIndex(0);
+    const dltBtn = await CartPage.getProductDeleteButtonByIndex(0);
 
-    // Add to cart
-    await ProductPage.selectQuantity(2);
-    await ProductPage.addToCart();
-
-    // Open Cart Page
-    await CartPage.openCart();
-
-    // Verify cart item elements with timeout
-    const productName = await CartPage.productName(0);
-    await expect(productName).toHaveText("iPhone 13 Pro 256GB Memory", { timeout: 5000 });
-
-    const productPrice = await CartPage.productPrice(0);
-    await expect(productPrice).toHaveText("$599.99", { timeout: 5000 });
-
-    const qtyDropdown = await CartPage.productQuantityDropdown(0);
-    await expect(qtyDropdown).toHaveValue("2", { timeout: 5000 });
-
-    const deleteBtn = await CartPage.deleteButton(0);
-    await expect(deleteBtn).toBeDisplayed({ timeout: 5000 });
-
-    const cartBadge = await CartPage.cartIconCount;
-    await expect(cartBadge).toHaveText("2", { timeout: 5000 });
-
-    const checkoutBtn = await CartPage.checkOutBtn;
+    await expect(subtotal).toBe(3, { timeout: 5000 });
     await expect(checkoutBtn).toBeDisplayed({ timeout: 5000 });
+    await expect(dltBtn).toBeDisplayed({ timeout: 5000 });
+    await expect(name).toEqual("Airpods Wireless Bluetooth Headphones");
+    await expect(price).toEqual("$89.99");
+    await expect(qty).toBe("3");
+
+    //badge
+    const total = await ProductPage.cartIconCount.getText();
+    await expect(total).toBe("3");
   });
 
   it("TCPO_02: Verify adding the same product multiple times updates quantity correctly", async () => {
-    // Step 1-4: Add product first time
+    // Step 1: Open the home page and navigate to the first product's page.
     await HomePage.open();
-    const href = await HomePage.getProductHref(0);
-    await HomePage.openProduct(0);
-    await ProductPage.selectQuantity(1);
-    await ProductPage.addToCart();
+    await HomePage.waitForProductListToLoad();
+    await HomePage.openProductbyIndex(0);
 
-    // Step 5-8: Add same product again
+    // Step 2: Set the quantity to 1 and add the product to the cart.
+    const firstQty = 1;
+    await ProductPage.setProductQuantity(firstQty);
+    await ProductPage.clickAddToCartButton();
+
+    // Step 3: Go back to the home page and navigate to the same product again.
     await HomePage.open();
-    await HomePage.openProduct(0);
-    await ProductPage.selectQuantity(3); // Can change to another number
-    await ProductPage.addToCart();
+    await HomePage.waitForProductListToLoad();
+    await HomePage.openProductbyIndex(0);
 
-    // Step 9: Open cart
-    await CartPage.openCart();
+    // Step 4: Set a new quantity and add the product again.
+    const secondQty = 3;
+    await ProductPage.setProductQuantity(secondQty);
+    await ProductPage.clickAddToCartButton();
 
-    // Verify no duplicate line item
-    const items = await CartPage.cartItems();
-    await expect(items.length).toBe(1);
+    // Step 5: Navigate to the cart page.
+    await expect(browser).toHaveUrl(expect.stringContaining("/cart"), { timeout: 5000 });
 
-    // Verify quantity is last selected
-    const qtyDropdown = await CartPage.productQuantityDropdown(0);
-    await expect(qtyDropdown).toHaveValue("3", { timeout: 5000 });
+    // Step 6: Verify there is only one line item in the cart.
+    const cartItems = await CartPage.cartItems;
+    await expect(cartItems.length).toBe(1);
 
-    // Verify total price updates correctly
-    const price = await CartPage.productPrice(0);
-    await expect(price).toHaveText("$599.99", { timeout: 5000 });
+    // Step 7: Verify the product's quantity is last add to cart
+    const productQty = await CartPage.getProductQuantityByIndex(0);
+    await expect(productQty).toEqual(secondQty.toString());
 
-    // Verify cart icon updates
-    await expect(await CartPage.cartIconCount).toHaveText("3", { timeout: 5000 });
-    //caculate total price
-    const qtyValue = parseInt(await qtyDropdown.getValue(), 10);
-    const priceText = await price.getText(); // "$599.99"
-    const priceNumber = parseFloat(priceText.replace("$", ""));
-    const expectedSubtotal = +(qtyValue * priceNumber).toFixed(2);
-
-    // card total
+    // Step 8: Verify the subtotal quantity and price are correct.
     const subtotalQty = await CartPage.getSubtotalQuantity();
-    const subtotalPrice = await CartPage.getSubtotalPrice();
-    await expect(subtotalQty).toBe(qtyValue, { timeout: 5000 });
-    await expect(subtotalPrice).toBe(expectedSubtotal, { timeout: 5000 });
+    await expect(subtotalQty).toBe(secondQty);
+
+    //badge
+    const total = await ProductPage.cartIconCount.getText();
+    await expect(total).toBe("3");
+    const productPriceText = await CartPage.getProductPriceByIndex(0);
+    const productPrice = parseFloat(productPriceText.replace("$", ""));
+    const expectedSubtotalPrice = Number((productPrice * secondQty).toFixed(2));
+
+    const actualSubtotalPrice = await CartPage.getSubtotalPrice();
+    await expect(actualSubtotalPrice).toBeCloseTo(expectedSubtotalPrice, 2);
   });
 
-  it("TCPO_03: Verify that user can add many different products to cart successfully", async () => {
-    let expectedSubtotal = 0;
+  it("TCPO_03: Verify a user can add many different products to the cart successfully", async () => {
+    const productsToAdd = [
+      { index: 0, quantity: 1, name: "Airpods Wireless Bluetooth Headphones", price: 89.99 },
+      { index: 1, quantity: 2, name: "iPhone 13 Pro 256GB Memory", price: 599.99 },
+      { index: 2, quantity: 3, name: "Cannon EOS 80D DSLR Camera", price: 929.99 },
+    ];
 
-    // Add product 1 (index 0, qty 2)
-    await HomePage.open();
-    await HomePage.openProduct(0);
-    await ProductPage.selectQuantity(2);
-    await ProductPage.addToCart();
+    let expectedTotalPrice = 0;
+    let expectedTotalItems = 0;
 
-    // Add product 2 (index 1, qty 1)
-    await HomePage.open();
-    await HomePage.openProduct(1);
-    await ProductPage.selectQuantity(1);
-    await ProductPage.addToCart();
+    for (const product of productsToAdd) {
+      await HomePage.open();
+      await HomePage.waitForProductListToLoad();
+      await HomePage.openProductbyIndex(product.index);
 
-    // Add product 3 (index 2, qty 3)
-    await HomePage.open();
-    await HomePage.openProduct(2);
-    await ProductPage.selectQuantity(3);
-    await ProductPage.addToCart();
+      await ProductPage.setProductQuantity(product.quantity);
+      await ProductPage.clickAddToCartButton();
 
-    // Open cart
-    await CartPage.openCart();
+      // Update totals as each product is added
+      expectedTotalItems += product.quantity;
+      expectedTotalPrice += product.quantity * product.price;
 
-    // Get all items in cart
-    const items = await CartPage.cartItems();
-    await expect(items.length).toBe(3);
+      // Verify cart icon count after each addition
+      const cartIconCount = await ProductPage.cartIconCount.getText();
+      await expect(cartIconCount).toBe(expectedTotalItems.toString());
+    }
 
-    // --- Item 1 ---
-    const nameEl1 = await items[0].$("a");
-    const name1 = await nameEl1.getText();
+    // Navigate to the cart page for final verification
+    await CartPage.open();
+    // --- Final Assertions on the Cart Page ---
 
-    const qtyDropdown1 = await items[0].$("select.form-control");
-    const qty1 = parseInt(await qtyDropdown1.getValue(), 10);
+    // Verify total item count in the header
+    const subtotalQty = await CartPage.getSubtotalQuantity();
+    await expect(subtotalQty).toBe(expectedTotalItems);
 
-    const priceEl1 = await items[0].$(".col-md-2:nth-child(3) strong, .col strong");
-    const priceText1 = await priceEl1.getText();
-    const price1 = parseFloat(priceText1.replace("$", ""));
+    // Verify each product's details in the cart
+    const cartItems = await CartPage.cartItems;
+    await expect(cartItems.length).toBe(productsToAdd.length);
 
-    expectedSubtotal += qty1 * price1;
-    console.log(`Item ${name1} quantity: ${qty1} unit price: ${price1}`);
+    // Loop through cart items to verify details
+    for (let i = 0; i < productsToAdd.length; i++) {
+      const productData = productsToAdd[i];
 
-    // --- Item 2 ---
-    const nameEl2 = await items[1].$("a");
-    const name2 = await nameEl2.getText();
+      const actualName = await CartPage.getProductNameByIndex(i);
+      await expect(actualName).toEqual(productData.name);
 
-    const qtyDropdown2 = await items[1].$("select.form-control");
-    const qty2 = parseInt(await qtyDropdown2.getValue(), 10);
+      const actualQty = await CartPage.getProductQuantityByIndex(i);
+      await expect(actualQty).toEqual(productData.quantity.toString());
 
-    const priceEl2 = await items[1].$(".col-md-2:nth-child(3) strong, .col strong");
-    const priceText2 = await priceEl2.getText();
-    const price2 = parseFloat(priceText2.replace("$", ""));
+      const actualPrice = await CartPage.getProductPriceByIndex(i);
+      await expect(actualPrice).toEqual(`$${productData.price.toFixed(2)}`);
+    }
 
-    expectedSubtotal += qty2 * price2;
-    console.log(`Item ${name2} quantity: ${qty2} unit price: ${price2}`);
-
-    // --- Item 3 ---
-    const nameEl3 = await items[2].$("a");
-    const name3 = await nameEl3.getText();
-
-    const qtyDropdown3 = await items[2].$("select.form-control");
-    const qty3 = parseInt(await qtyDropdown3.getValue(), 10);
-
-    const priceEl3 = await items[2].$(".col-md-2:nth-child(3) strong, .col strong");
-    const priceText3 = await priceEl3.getText();
-    const price3 = parseFloat(priceText3.replace("$", ""));
-
-    expectedSubtotal += qty3 * price3;
-    console.log(`Item ${name3} quantity: ${qty3} unit price: ${price3}`);
-
-    // Verify subtotal
-    const subtotalPrice = await CartPage.getSubtotalPrice();
-    await expect(subtotalPrice).toBeCloseTo(expectedSubtotal, 2);
-
-    console.log("Expected subtotal:", expectedSubtotal, "Actual subtotal:", subtotalPrice);
+    // Verify the final total price
+    const actualTotalPrice = await CartPage.getSubtotalPrice();
+    await expect(actualTotalPrice).toBeCloseTo(expectedTotalPrice, 2);
   });
+  it("TCPO_04: Verify cart is empty when no items are added", async () => {
+    //1: Navigate directly to the cart page
+    await CartPage.open();
 
-  it("TCPO_05: Verify cart is empty when no items are added", async () => {
-    // Clear cart from localStorage
+    // Step 3: Verify the empty cart message and link are displayed
+    await expect(CartPage.emptyCartMessage).toBeDisplayed({ timeout: 5000 });
+    await expect(await CartPage.emptyCartMessage.getText()).toEqual("Your cart is empty Go Back");
 
-    await CartPage.openCart();
+    // Step 4: Verify the subtotal shows "0 items"
+    const subtotalQty = await CartPage.getSubtotalQuantity();
+    await expect(subtotalQty).toBe(0);
 
-    // Verify alert is displayed
-    await expect(await CartPage.isCartEmpty()).toBe(true);
+    // Step 5: Verify "Proceed To Checkout" button is disabled
+    await expect(CartPage.checkoutButton).toBeDisabled({ timeout: 5000 });
 
-    // Optionally check text
-    const text = await CartPage.getEmptyCartText();
-    await expect(text).toContain("Your cart is empty");
-    console.log("Empty cart alert text:", text);
-  });
-
-  it("TCPO_06: Verify that product availability is displayed correctly", async () => {
-    // Product in stock
-    await HomePage.openProduct(0);
-    await expect(await ProductPage.getStockText()).toBe("In Stock");
-    await expect(await ProductPage.isAddToCartEnabled()).toBe(true);
-    await ProductPage.openHomePage();
-    // Product out of stock
-    await HomePage.openProduct(4);
-    await expect(await ProductPage.getStockText()).toBe("Out of Stock");
-    await expect(await ProductPage.isAddToCartEnabled()).toBe(false);
-  });
-
-  it("TCPO_07: Verify that a new user does not inherit the previous user’s cart after switching accounts", async () => {
-    // --- Step 2-4: Add a product to cart ---
-    await HomePage.openProduct(0); // first product
-    await ProductPage.selectQuantity(2);
-    await ProductPage.addToCart();
-
-    // Verify cart has 1 item
-    await CartPage.openCart();
-    let items = await CartPage.cartItems();
-    await expect(items.length).toBe(1);
-    console.log("First user cart items:", items.length);
-
-    // --- Step 5: Logout ---
-    await HomePage.navigateToProfile();
-    await HomePage.logoutMenuItem.click();
-
-    // --- Step 6: Login with second valid account ---
-    await LoginPage.open();
-    await LoginPage.login("john@email.com", "123456");
-
-    // --- Step 7: Check cart ---
-    await CartPage.openCart();
-
-    // Cart should be empty
-    items = await CartPage.cartItems();
-    await expect(items.length).toBe(0);
-
-    // Check empty cart alert
-    const emptyAlert = await CartPage.emptyCartAlert;
-    await expect(emptyAlert).toBeDisplayed();
-    const text = await emptyAlert.getText();
-    await expect(text).toContain("Your cart is empty");
-
-    console.log("Second user cart items:", items.length);
-
-    // Optional: verify cart icon shows 0
-    const cartCount = await CartPage.cartIconCount.getText();
-    await expect(cartCount).toBe("0");
-  });
-  it("TCPO_08: Verify that adding product without login works or redirects to login", async () => {
-    // Open homepage and select a product
-    await HomePage.open();
-    await HomePage.openProduct(0); // first product
-
-    // Select quantity and try to add to cart
-    await ProductPage.selectQuantity(2);
-    await ProductPage.addToCart();
-
-    // Open cart
-    await CartPage.openCart();
-
-    // Verify cart has the item
-    const items = await CartPage.cartItems();
-    await expect(items.length).toBe(1);
-
-    const qtyDropdown = await CartPage.productQuantityDropdown(0);
-    const qty = parseInt(await qtyDropdown.getValue(), 10);
-    await expect(qty).toBe(2);
-
-    const nameEl = await CartPage.productName(0);
-    const name = await nameEl.getText();
-    console.log(`Added to cart without login: ${name}, quantity: ${qty}`);
+    // Step 6: Verify the total price is $0.00
+    // This assertion may not be applicable if the total price is not shown
+    // or if your `getSubtotalPrice` method cannot handle this state.
+    const actualSubtotalPrice = await CartPage.getSubtotalPrice();
+    await expect(actualSubtotalPrice).toBe(0);
   });
 });

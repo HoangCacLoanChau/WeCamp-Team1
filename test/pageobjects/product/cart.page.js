@@ -18,9 +18,6 @@ class CartPage extends Page {
   get emptyCartMessage() {
     return $('[role="alert"]');
   }
-  get goBackLink() {
-    return this.emptyCartMessage.$("a");
-  }
 
   get checkoutButton() {
     return $(".btn-block");
@@ -64,11 +61,30 @@ class CartPage extends Page {
     const item = await this.getProductInCartByIndex(index);
     return item.$("select.form-control").getValue();
   }
+  async editProductQuantity(index, quantity) {
+    const item = await this.getProductInCartByIndex(index);
+    const quantitySelect = await item.$("select.form-control");
+
+    await quantitySelect.selectByVisibleText(quantity.toString());
+  }
 
   // Get the product delete button by index
   async getProductDeleteButtonByIndex(index) {
     const item = await this.getProductInCartByIndex(index);
     return item.$(".btn.btn-light");
+  }
+  async removeProductByIndex(index) {
+    const deleteButton = await this.getProductDeleteButtonByIndex(index);
+    await deleteButton.click();
+
+    // Add a wait to ensure the page has updated after deletion
+    await browser.waitUntil(
+      async () => {
+        const cartItems = await this.cartItems;
+        return cartItems.length === 0;
+      },
+      { timeout: 5000, timeoutMsg: "Expected cart to be empty after removing the item." },
+    );
   }
 
   // Click the checkout button

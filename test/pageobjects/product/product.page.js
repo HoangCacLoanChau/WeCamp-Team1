@@ -21,7 +21,9 @@ class ProductPage {
   }
 
   get productStatus() {
-    return $(".list-group-item .row .col:nth-child(2)");
+    return $(
+      "#root > main > div > div:nth-child(2) > div:nth-child(3) > div > div > div:nth-child(2) > div > div:nth-child(2)",
+    );
   }
 
   get quantitySelect() {

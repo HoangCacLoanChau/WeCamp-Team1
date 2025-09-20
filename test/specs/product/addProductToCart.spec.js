@@ -170,4 +170,72 @@ describe("Adding product to cart", () => {
     const actualSubtotalPrice = await CartPage.getSubtotalPrice();
     await expect(actualSubtotalPrice).toBe(0);
   });
+  it("TCPO_05: Verify product availability is displayed correctly", async () => {
+    // Navigate to the home page and wait for products to load
+    await HomePage.open();
+    await HomePage.waitForProductListToLoad();
+
+    // --- Scenario 1: In Stock Product ---
+    const inStockProductIndex = 0;
+    await HomePage.openProductbyIndex(inStockProductIndex);
+
+    // Assert "In Stock" label is displayed
+    await expect(ProductPage.productStatus).toHaveText("In Stock", { timeout: 5000 });
+    // Assert "Add To Cart" button is enabled
+    await expect(ProductPage.addToCartButton).toBeEnabled({ timeout: 5000 });
+
+    // Go back to the homepage for the next scenario
+    await browser.back();
+    await HomePage.waitForProductListToLoad();
+
+    // --- Scenario 2: Out of Stock Product ---
+    const outOfStockProductIndex = 5;
+    await HomePage.openProductbyIndex(outOfStockProductIndex);
+
+    // Assert "Out of Stock" label is displayed
+    await expect(ProductPage.productStatus).toHaveText("Out Of Stock", { timeout: 5000 });
+    // Assert "Add To Cart" button is disabled
+    await expect(ProductPage.addToCartButton).toBeDisabled({ timeout: 5000 });
+  });
+  it("TCPO_06: Verify that a new user does not inherit the previous user’s cart", async () => {
+    // --- User 1: Add items to cart ---
+    const user1 = { email: "admin@email.com", password: "123456" };
+    const user2 = { email: "john@email.com", password: "123456" };
+
+    // Step 1: Login with the first user
+    await LoginPage.open();
+    await LoginPage.login(user1.email, user1.password);
+
+    // Step 2 & 3: Add a product to the cart
+    const desiredQuantity = 2;
+    await HomePage.waitForProductListToLoad();
+    await HomePage.openProductbyIndex(0);
+    await ProductPage.setProductQuantity(desiredQuantity);
+    await ProductPage.clickAddToCartButton();
+
+    // Verify cart icon for user 1
+    const cartIconCountUser1 = await ProductPage.cartIconCount.getText();
+    await expect(cartIconCountUser1).toBe(desiredQuantity.toString());
+
+    // Step 4: Logout
+    await HomePage.logOut();
+
+    // --- User 2: Verify empty cart ---
+
+    // Step 5: Login with a second valid account
+    await LoginPage.open();
+    await LoginPage.login(user2.email, user2.password);
+
+    // Step 6: Navigate to the cart page
+    await CartPage.open();
+
+    // Step 7: Check Cart for second user
+    // Assert cart is empty by checking for the empty cart message
+    await expect(CartPage.emptyCartMessage).toBeDisplayed({ timeout: 5000 });
+    await expect(await CartPage.emptyCartMessage.getText()).toEqual("Your cart is empty Go Back");
+
+    // Assert subtotal shows 0 items and price is 0
+    await expect(await CartPage.getSubtotalQuantity()).toBe(0);
+    await expect(await CartPage.getSubtotalPrice()).toBe(0);
+  });
 });

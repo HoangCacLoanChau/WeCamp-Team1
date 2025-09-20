@@ -19,9 +19,17 @@ class HomePage extends Page {
   }
 
   get logoutMenuItem() {
-    return $(".dropdown-menu a=Logout");
+    return $("#basic-navbar-nav > div > div.nav-item.show.dropdown > div > a:nth-child(2)");
   }
-
+  async logOut() {
+    if (await this.navbarToggler.isDisplayed()) {
+      await this.navbarToggler.click();
+    }
+    await (await this.userMenu).waitForClickable();
+    await (await this.userMenu).click();
+    await (await this.logoutMenuItem).waitForClickable();
+    await (await this.logoutMenuItem).click();
+  }
   async navigateToProfile() {
     if (await this.navbarToggler.isDisplayed()) {
       await this.navbarToggler.click();

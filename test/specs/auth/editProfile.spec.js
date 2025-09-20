@@ -8,7 +8,7 @@ describe('Epic 1 - Edit Profile', () => {
 
   before(async () => {
     await LoginPage.open();
-    await LoginPage.login('editprofile@gmail.com', '150903');
+    await LoginPage.login('acc@gmail.com', '123456');
     await expect(browser).toHaveUrl('http://localhost:3000/');
     await HomePage.navigateToProfile();
     await expect(browser).toHaveUrl('http://localhost:3000/profile');

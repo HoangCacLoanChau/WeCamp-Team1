@@ -9,9 +9,10 @@ class ProfilePage extends Page {
 
   // Toast message hiển thị thông báo thành công/ password missmatch
   get toastMessage() {
-    return $('.Toastify__toast-body div:nth-child(2)'); 
+    return $('//div[contains(text(),"Profile updated successfully")]'); 
   }
-
+  
+// clear and type
  async clearAndType(el, value) {
     await el.click();
     await el.clearValue();

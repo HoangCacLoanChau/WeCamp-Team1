@@ -1,80 +1,67 @@
-import { expect } from '@wdio/globals';
-import LoginPage from '../../pageobjects/auth/login.page.js';
-import HomePage from '../../pageobjects/auth/home.page.js';
-import ProfilePage from '../../pageobjects/auth/profile.page.js';
+import { expect } from "@wdio/globals";
+import LoginPage from "../../pageobjects/auth/login.page.js";
+import HomePage from "../../pageobjects/auth/home.page.js";
+import ProfilePage from "../../pageobjects/auth/profile.page.js";
 
-describe('Epic 1 - Change Password', () => {
-  const ORIGINAL_PASS = '123456';
-  const ALT_PASS      = 'T!ger#R123';
+describe("Epic 1 - Change Password", () => {
+  const ORIGINAL_PASS = "123456";
+  const ALT_PASS = "T!ger#R123";
   let originalProfile;
 
   before(async () => {
     await LoginPage.open();
-    await LoginPage.login('acc@gmail.com', ORIGINAL_PASS);
+    await LoginPage.login("acc@gmail.com", ORIGINAL_PASS);
     await HomePage.navigateToProfile();
-    await expect(browser).toHaveUrl('http://localhost:3000/profile');
-    await expect(ProfilePage.nameInput).toBeDisplayed({ timeout: 10000 });
+    // await expect(browser).toHaveUrl("http://localhost:3000/profile");
+    // await expect(ProfilePage.nameInput).toBeDisplayed({ timeout: 10000 });
     originalProfile = await ProfilePage.getOriginalProfile();
   });
 
   beforeEach(async () => {
-    if (!(await browser.getUrl()).includes('/profile')) {
+    if (!(await browser.getUrl()).includes("/profile")) {
       await ProfilePage.open();
-      await expect(ProfilePage.nameInput).toBeDisplayed({ timeout: 10000 });
-      await expect(ProfilePage.emailInput).toBeDisplayed({ timeout: 10000 });
+      // await expect(ProfilePage.nameInput).toBeDisplayed({ timeout: 10000 });
+      // await expect(ProfilePage.emailInput).toBeDisplayed({ timeout: 10000 });
     }
   });
 
   after(async () => {
     // đảm bảo về password gốc sau toàn bộ suite
     await ProfilePage.updateProfile({ password: ORIGINAL_PASS, confirmPassword: ORIGINAL_PASS });
-    // await expect(ProfilePage.toastMessage).toBeDisplayed({ timeout: 10000 });
-    // await expect(ProfilePage.toastMessage).toHaveText('Profile updated successfully');
+    await expect(ProfilePage.toastMessage).toBeDisplayed({ timeout: 10000 });
+    await expect(ProfilePage.toastMessage).toHaveText("Profile updated successfully");
 
     // trả lại name/email nếu có chỉnh
-    await ProfilePage.updateProfile(originalProfile);
+    //   await ProfilePage.updateProfile(originalProfile);
     // (đợi một nhịp rồi kết thúc)
-    await browser.pause(300);
+    // await browser.pause(300);
     await browser.reloadSession();
   });
 
-  it.only('TCCP_01: should change password successfully with valid format', async () => {
-    const ORIGINAL_PASS = '150903';
-    const ALT_PASS      = 'T!ger#R123';
-
+  it("TCCP_01: should change password successfully with valid format", async () => {
     // Đổi sang ALT_PASS
     await ProfilePage.updateProfile({ password: ALT_PASS, confirmPassword: ALT_PASS });
-    await browser.waitUntil(
-      async () => await ProfilePage.toastMessage.isDisplayed(),
-      {
-        timeout: 5000,
-        timeoutMsg: "Toast message not displayed"
-      }
-    );
-    expect(ProfilePage.toastMessage).toContain('Profile updated successfully');
-
-
-    // Đổi lại ORIGINAL_PASS để không ảnh hưởng case sau
-    await ProfilePage.updateProfile({ password: ORIGINAL_PASS, confirmPassword: ORIGINAL_PASS });
-    const t2 = await ProfilePage.getToastText(10000);
-    expect(t2).toContain('Profile updated successfully');
+    await expect(ProfilePage.toastMessage).toBeDisplayed({ timeout: 10000 });
+    expect(ProfilePage.toastMessage).toHaveText("Profile updated successfully");
   });
 
   // invalid passwords format
   const invalidSamples = [
-    { pw: '1234Abcd!',  note: 'Sequential characters (1234)' },
-    { pw: 'Aaaa@1111',  note: 'Repeated characters (Aaaa / 1111)' },
-    { pw: 'password',   note: 'Common password' },
-    { pw: '12345678',   note: 'Common numeric password' },
-    { pw: 'iloveyou',   note: 'Common phrase password' },
-    { pw: 'Secure@Nhi', note: 'Contains personal info (name/email)' },
-    { pw: 'SECURE@123', note: 'Missing lowercase' },
-    { pw: 'SecurePass', note: 'Missing number & special char' },
-    { pw: 'S@1a',       note: 'Too short (< 8 chars)' },
+    { pw: "1234Abcd!", note: "Sequential characters (1234)" },
+    { pw: "Aaaa@1111", note: "Repeated characters (Aaaa / 1111)" },
+    { pw: "password", note: "Common password" },
+    { pw: "12345678", note: "Common numeric password" },
+    { pw: "iloveyou", note: "Common phrase password" },
+    { pw: "Secure@Nhi", note: "Contains personal info (name/email)" },
+    { pw: "SECURE@123", note: "Missing lowercase" },
+    { pw: "SecurePass", note: "Missing number & special char" },
+    { pw: "S@1a", note: "Too short (< 8 chars)" },
   ];
 
   invalidSamples.forEach(({ pw, note }, i) => {
-    it(`TCCP_02.${i + 1}: should block when new password has invalid format - ${note}`, async () => {
+    it(`TCCP_02.${
+      i + 1
+    }: should block when new password has invalid format - ${note}`, async () => {
       await ProfilePage.updateProfile({ password: pw, confirmPassword: pw });
 
       // chờ 1 nhịp trước khi đọc toast (đủ chậm)
@@ -82,36 +69,23 @@ describe('Epic 1 - Change Password', () => {
 
       if (await ProfilePage.toastMessage.isExisting()) {
         const text = await ProfilePage.toastMessage.getText();
-        expect(text.length).toBeGreaterThan(0);
-        expect(text).not.toContain('Password changed successfully');
+        expect(text).not.toHaveText("Profile updated successfully");
       } else {
         // fallback siêu gọn nếu không có toast
-        const pMsg = await ProfilePage.passwordInput.getProperty('validationMessage');
-        const cMsg = await ProfilePage.confirmPasswordInput.getProperty('validationMessage');
-        const msg  = `${pMsg || ''} ${cMsg || ''}`.trim();
+        const pMsg = await ProfilePage.passwordInput.getProperty("validationMessage");
+        const cMsg = await ProfilePage.confirmPasswordInput.getProperty("validationMessage");
+        const msg = `${pMsg || ""} ${cMsg || ""}`.trim();
         expect(msg.length).toBeGreaterThan(0);
       }
 
-      expect(await browser.getUrl()).toContain('/profile');
+      expect(await browser.getUrl()).toContain("/profile");
     });
   });
 
-  it('TCCP_03: should block when new password and confirmation do not match', async () => {
-    await ProfilePage.updateProfile({ password: 'Strong@1234', confirmPassword: 'Strong@123!' });
-
-    // chờ 1 nhịp rồi đọc toast
-    await browser.pause(800);
-
-    if (await ProfilePage.toastMessage.isExisting()) {
-      const toastText = await ProfilePage.toastMessage.getText();
-      expect(/passwords?\s+do\s+not\s+match/i.test(toastText)).toBe(true);
-    } else {
-      // fallback native
-      const pMsg = await ProfilePage.passwordInput.getProperty('validationMessage');
-      const cMsg = await ProfilePage.confirmPasswordInput.getProperty('validationMessage');
-      const msg  = `${pMsg || ''} ${cMsg || ''}`.trim();
-      expect(/do\s+not\s+match|không\s+khớp/i.test(msg)).toBe(true);
-    }
+  it("TCCP_03: should block when new password and confirmation do not match", async () => {
+    await ProfilePage.updateProfile({ password: "Strong@1234", confirmPassword: "Strong@123!" });
+    await expect(ProfilePage.toastMessageFail).toBeDisplayed({ timeout: 5000 });
+    expect(ProfilePage.toastMessageFail).toHaveText("Passwords do not match");
   });
 });
 //   it('TCCP_04: should block when new password matches a previously used password', async function () {

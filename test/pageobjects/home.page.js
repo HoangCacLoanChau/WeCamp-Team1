@@ -4,6 +4,9 @@ class HomePage extends Page {
   async open() {
     await super.open("");
   }
+  get cartIconCount() {
+    return $(".badge");
+  }
 
   // Profile
   get userMenu() {
@@ -19,9 +22,17 @@ class HomePage extends Page {
   }
 
   get logoutMenuItem() {
-    return $(".dropdown-menu a=Logout");
+    return $("#basic-navbar-nav > div > div.nav-item.show.dropdown > div > a:nth-child(2)");
   }
-
+  async logOut() {
+    if (await this.navbarToggler.isDisplayed()) {
+      await this.navbarToggler.click();
+    }
+    await (await this.userMenu).waitForClickable();
+    await (await this.userMenu).click();
+    await (await this.logoutMenuItem).waitForClickable();
+    await (await this.logoutMenuItem).click();
+  }
   async navigateToProfile() {
     if (await this.navbarToggler.isDisplayed()) {
       await this.navbarToggler.click();
@@ -33,37 +44,28 @@ class HomePage extends Page {
   }
 
   // Product list
-  async productListContainer() {
-    return await $("#root > main > div > div.row");
+  get productCards() {
+    return $$(".card");
+  }
+  async waitForProductListToLoad() {
+    // Wait for at least one card to exist
+    await $(".card").waitForExist({ timeout: 15000 });
+  }
+  // Gets a specific product card by its index
+  async getProductCardByIndex(index) {
+    const allCards = await this.productCards;
+    return allCards[index];
   }
 
-  async allProductLinks() {
-    const container = await this.productListContainer();
-    await container.waitForDisplayed({ timeout: 5000 });
-    return await container.$$("div > div a[href*='/product/']");
+  async getProductHrefByIndex(index) {
+    const productCard = await this.getProductCardByIndex(index);
+    const productLink = await productCard.$('a[href^="/product/"]');
+    return productLink.getAttribute("href");
   }
 
-  async getProductHref(index = 0) {
-    const links = await this.allProductLinks();
-    if (!links || links.length === 0) {
-      throw new Error("No product links found on page");
-    }
-    if (index < 0 || index >= links.length) {
-      throw new Error(`Product index ${index} is out of bounds`);
-    }
-    return await links[index].getAttribute("href");
-  }
-
-  async openProduct(index = 0) {
-    const links = await this.allProductLinks();
-    if (!links || links.length === 0) {
-      throw new Error("No product links found on page");
-    }
-    if (index < 0 || index >= links.length) {
-      throw new Error(`Product index ${index} is out of bounds`);
-    }
-    const productLink = links[index];
-    await productLink.waitForDisplayed({ timeout: 5000 });
+  async openProductbyIndex(index) {
+    const productCard = await this.getProductCardByIndex(index);
+    const productLink = await productCard.$('a[href^="/product/"]');
     await productLink.click();
   }
 }

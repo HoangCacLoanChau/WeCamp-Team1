@@ -1,4 +1,6 @@
-class OrderPage {
+import Page from "../page";
+
+class OrderPage extends Page {
   get header() {
     return $("h1");
   }

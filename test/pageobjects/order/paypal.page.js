@@ -98,13 +98,11 @@ class PaypalPage {
     await this.btnCompletePurchase.waitForDisplayed({ timeout: 20000 });
     await this.btnCompletePurchase.click();
     await browser.switchWindow("localhost:3000");
-    await this.backToApp();
   }
   async cancelAndReturn() {
     await this.switchToPaypal();
     await browser.closeWindow();
     await browser.switchWindow("localhost:3000");
-    await this.backToApp();
   }
 }
 

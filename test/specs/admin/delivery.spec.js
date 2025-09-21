@@ -1,5 +1,5 @@
-import LoginPage from '../pageobjects/auth/login.page.js';
-import AdminOrderPage from '../pageobjects/admin/admin-order.page.js';
+import LoginPage from '../../pageobjects/auth/login.page.js';
+import AdminOrderPage from '../../pageobjects/admin/admin-order.page.js';
 
 describe('Mark as Delivered Flow', () => {
   it('Admin sees "Mark As Delivered"', async () => {

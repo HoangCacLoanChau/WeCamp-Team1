@@ -1,36 +1,31 @@
 import Page from "../page";
 
-class OrderPage extends Page {
-  get header() {
-    return $("h1");
-  }
-  get paymentStatus() {
-    return $("/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]");
-  }
-  get btnPaypal() {
-    return $('//div[contains(@data-funding-source,"paypal")]');
-  }
-
-  async open(orderId) {
-    await browser.url(`/order/${orderId}`);
-  }
-
-  async clickContinueToPaypal() {
-    await this.btnPaypal.click();
-  }
-
-  //shipping
-
+class PlaceOrderPage extends Page {
   /**
-   * sub page containing specific selectors and methods for a specific page
+   * Define selectors for elements on the Place Order page.
    */
-  get shippingAddressElement() {
-    // A more robust selector to find the paragraph that contains the "Address:" label
-    return $("p*=Address:");
+  get pageTitle() {
+    return $("h1=Place Order");
   }
 
+  // Selector for the entire shipping details paragraph, including the address text
+  get shippingDetailsParagraph() {
+    return $('//h2[text()="Shipping"]/following-sibling::p');
+  }
+  async getShippingAddress() {
+    const fullText = await this.shippingDetailsParagraph.getText();
+    return fullText.replace("Address:", "").trim();
+  }
+  get shippingPrice() {
+    // Finds the element immediately following the 'Shipping' label
+    return $('//div[text()="Shipping"]/following-sibling::div');
+  }
+  async getShippingPrice() {
+    const text = await this.shippingPrice.getText();
+    return parseFloat(text.replace("$", ""));
+  }
   get paymentMethod() {
-    return $('//h2[text()="Payment Method"]/following-sibling::p');
+    return $('//h2[text()="Payment Method"]/following-sibling::strong');
   }
 
   // A more robust selector to find the order items list.
@@ -57,15 +52,6 @@ class OrderPage extends Page {
   }
 
   /**
-   * Gets the shipping address from the shipping details.
-   * @returns {Promise<string>} The shipping address as a string.
-   */
-  async getShippingAddress() {
-    const fullText = await this.shippingAddressElement.getText();
-    return fullText.replace("Address:", "").trim();
-  }
-
-  /**
    * Gets the price of the items from the order summary.
    * @returns {Promise<number>} The items price as a number.
    */
@@ -74,19 +60,6 @@ class OrderPage extends Page {
     return parseFloat(text.replace("$", ""));
   }
 
-  /**
-   * Gets the shipping price from the order summary.
-   * @returns {Promise<number>} The shipping price as a number.
-   */
-  async getShippingPrice() {
-    const text = await $('//div[text()="Shipping"]/following-sibling::div').getText();
-    return parseFloat(text.replace("$", ""));
-  }
-
-  /**
-   * Gets the tax price from the order summary.
-   * @returns {Promise<number>} The tax price as a number.
-   */
   async getTaxPrice() {
     const text = await $('//div[text()="Tax"]/following-sibling::div').getText();
     return parseFloat(text.replace("$", ""));
@@ -101,21 +74,11 @@ class OrderPage extends Page {
     return parseFloat(price);
   }
 
-  /**
-   * Get the name of an order item by its index.
-   * @param {number} index - The index of the item.
-   * @returns {Promise<string>} The name of the item.
-   */
   async getOrderItemNameByIndex(index) {
     const itemElement = await this.getOrderItemByIndex(index);
     return itemElement.$(".col a").getText();
   }
 
-  /**
-   * Get the quantity of an order item by its index.
-   * @param {number} index - The index of the item.
-   * @returns {Promise<number>} The quantity of the item.
-   */
   async getOrderItemQtyByIndex(index) {
     const itemElement = await this.getOrderItemByIndex(index);
     const priceString = await itemElement.$(".col-md-4").getText();
@@ -123,11 +86,6 @@ class OrderPage extends Page {
     return parseInt(match[1], 10);
   }
 
-  /**
-   * Get the total price of a single order item by its index.
-   * @param {number} index - The index of the item.
-   * @returns {Promise<number>} The total price of the item.
-   */
   async getOrderItemTotalPriceByIndex(index) {
     const item = await this.getOrderItemByIndex(index);
     if (!item) return 0;
@@ -135,12 +93,6 @@ class OrderPage extends Page {
     const match = text.match(/=\s*\$(\d+\.?\d*)/);
     return match ? parseFloat(match[1]) : 0;
   }
-
-  /**
-   * Get the unit price of a single order item by its index.
-   * @param {number} index - The index of the item.
-   * @returns {Promise<number>} The unit price of the item.
-   */
   async getOrderItemPriceByIndex(index) {
     const itemElement = await this.getOrderItemByIndex(index);
     if (!itemElement) return 0;
@@ -148,7 +100,6 @@ class OrderPage extends Page {
     const match = priceString.match(/\$\s*(\d+\.?\d*)\s*=/);
     return match ? parseFloat(match[1]) : 0;
   }
-
   /**
    * Click the "Place Order" button.
    */
@@ -157,10 +108,11 @@ class OrderPage extends Page {
   }
 
   /**
-   * Open the Order page directly.
+   * Open the Place Order page directly.
    */
   async open() {
-    await super.open("order/:id");
+    await super.open("placeorder");
   }
 }
-export default new OrderPage();
+
+export default new PlaceOrderPage();

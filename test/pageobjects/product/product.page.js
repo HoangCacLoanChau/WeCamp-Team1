@@ -56,10 +56,22 @@ class ProductPage {
   async getProductStatus() {
     return (await this.productStatus).getText();
   }
+  async getProductDetails() {
+    return {
+      name: await this.productName.getText(),
+      price: await this.productPrice.getText(),
+    };
+  }
 
   // Method to set the product quantity
   async setProductQuantity(quantity) {
     await this.quantitySelect.selectByVisibleText(quantity.toString());
+  }
+  async getMaxProductStock() {
+    const options = await this.quantitySelect.$$("option");
+    const lastOption = options[options.length - 1];
+    if (!lastOption) return 0;
+    return parseInt(await lastOption.getValue(), 10);
   }
 
   // Method to click the "Add To Cart" button

@@ -1,71 +1,105 @@
-import LoginPage from '../pageobjects/auth/login.page.js';
-import ProductPage from '../pageobjects/product/home.page.product.js';
-import CartPage from '../pageobjects/order/cart.page.js';
-import CheckoutPage from '../pageobjects/order/shipping.page.js';
-import PaypalPage from '../pageobjects/order/paypal.page.js';
-import OrderPage from '../pageobjects/order/order.page.js';
+import { $, browser } from '@wdio/globals';
+import { expect as chaiExpect } from 'chai';
+
+import LoginPage from '../../pageobjects/auth/login.page.js';
+import ProductPage from '../../pageobjects/product/product.page.js';
+import CartPage from '../../pageobjects/product/cart.page.js';
+import CheckoutPage from '../../pageobjects/order/shipping.page.js';
+import PaypalPage from '../../pageobjects/order/paypal.page.js';
+import OrderPage from '../../pageobjects/order/order.page.js';
 
 describe('Payment Process Flow', () => {
-  before(async () => {
+  beforeEach(async () => {
     await LoginPage.open();
     await LoginPage.login('capstone.test@gmail.com', '1');
-  });
 
-  it('Navigate to Purchase page', async () => {
-    await ProductPage.open();
-    await ProductPage.addToCart('Airpods Wireless Bluetooth Headphones');
-    await CartPage.goToCheckout();
+    await ProductPage.openHomePage();
+    await ProductPage.open('68b01c61ef175adb20697910');
+    await ProductPage.addToCart();
+
+    await CartPage.openCart();
+    await CartPage.checkOutBtn.waitForClickable({ timeout: 10000 });
+    await CartPage.checkOutBtn.click();
+
     await CheckoutPage.fillShippingInfo({
       address: '123 Street',
       city: 'HCMC',
-      postal: '700000',
+      postalCode: '700000',
       country: 'Vietnam'
     });
-    await CheckoutPage.selectPayment('PayPal');
+    await CheckoutPage.btnContinue.click();
     await CheckoutPage.placeOrder();
-    await expect(OrderPage.header).toBeDisplayed();
-    await expect(OrderPage.paymentStatus).toHaveTextContaining('Not Paid');
+
+    await (await OrderPage.header).waitForDisplayed({ timeout: 10000 });
   });
 
-  it('Redirects to PayPal sign-in page', async () => {
+  afterEach(async () => {
+    await browser.reloadSession();
+  });
+
+  it('Successfully pay with PayPal', async () => {
+    const notPaidText = await (await OrderPage.paymentStatus).getText();
+    chaiExpect(notPaidText).to.include('Not Paid');
+
     await OrderPage.clickContinueToPaypal();
-    await PaypalPage.switchToPaypal();
-    await expect(browser).toHaveUrlContaining('sandbox.paypal.com');
+    await PaypalPage.login('capstone.test@gmail.com', '12345678');
+    await (await PaypalPage.btnCompletePurchase).waitForDisplayed({ timeout: 20000 });
+    await PaypalPage.completePurchase();
+
+    await (await OrderPage.paymentStatus).waitForDisplayed({ timeout: 10000 });
+    const paidText = await (await OrderPage.paymentStatus).getText();
+    chaiExpect(paidText).to.include('Paid');
+
+    const successAlert = await $('//div[contains(text(),"Order is paid")]');
+    await successAlert.waitForDisplayed({ timeout: 10000 });
+    chaiExpect(await successAlert.isDisplayed()).to.equal(true);
   });
 
   it('Cancel PayPal and return to app', async () => {
     await OrderPage.clickContinueToPaypal();
     await PaypalPage.cancelAndReturn();
-    await expect(OrderPage.paymentStatus).toHaveTextContaining('Not Paid');
-  });
 
-  it('Valid PayPal login', async () => {
-    await OrderPage.clickContinueToPaypal();
-    await PaypalPage.login('capstone.test@gmail.com', '12345678');
-    await expect(PaypalPage.btnCompletePurchase).toBeDisplayed();
+    const paymentStatusText = await (await OrderPage.paymentStatus).getText();
+    chaiExpect(paymentStatusText).to.include('Not Paid');
   });
 
   it('Invalid PayPal login', async () => {
     await OrderPage.clickContinueToPaypal();
     await PaypalPage.login('capstone.test@gmail.com', '123456789');
 
-    const errorMsg = await $('div=Some of your info isn\'t correct');
-    await expect(errorMsg).toBeDisplayed();
+    const invalidAccErrorMsg = await $('//div[@id="content"]//div//div//p[@role="alert"]');
+    chaiExpect(await invalidAccErrorMsg.isDisplayed()).to.equal(true);
   });
 
-  it.skip('Insufficient PayPal balance', async () => {
-    // mock sandbox: assert paymentStatus "Not Paid"
-  });
+  it('Insufficient PayPal balance', async () => {
+  const notPaidText = await (await OrderPage.paymentStatus).getText();
+  chaiExpect(notPaidText).to.include('Not Paid');
 
-  it.skip('Network fail during payment', async () => {
-    // mock sandbox: assert paymentStatus "Not Paid"
-  });
+  await OrderPage.clickContinueToPaypal();
+  await PaypalPage.login('nobalance.test@gmail.com', '12345678');
 
-  it('PayPal payment success', async () => {
-    await OrderPage.clickContinueToPaypal();
-    await PaypalPage.login('capstone.test@gmail.com', '12345678');
-    await PaypalPage.completePurchase();
-    await expect(OrderPage.paymentStatus).toHaveTextContaining('Paid');
-    await expect($('.alert-success')).toBeDisplayed();
-  });
+  const noBalanceErrorMsg = await $('//div[@role="alert"]');
+  chaiExpect(await noBalanceErrorMsg.isDisplayed()).to.equal(true);
+
+  await PaypalPage.cancelAndReturn();
+
+  const stillNotPaidText = await (await OrderPage.paymentStatus).getText();
+  chaiExpect(stillNotPaidText).to.include('Not Paid');
+});
+
+  it('Network fails during payment', async () => {
+  const notPaidText = await (await OrderPage.paymentStatus).getText();
+  chaiExpect(notPaidText).to.include('Not Paid');
+
+  await OrderPage.clickContinueToPaypal();
+  await PaypalPage.login('capstone.test@gmail.com', '12345678');
+
+  await browser.throttleNetwork('offline');
+  await PaypalPage.completePurchase();
+
+  await browser.throttleNetwork('online');
+
+  const stillNotPaidText = await (await OrderPage.paymentStatus).getText();
+  chaiExpect(stillNotPaidText).to.include('Not Paid');
+});
 });

@@ -105,27 +105,27 @@ describe("Place an order", () => {
     await HomePage.open();
     await HomePage.waitForProductListToLoad();
 
-    // 2. Click on a product to view its details.
+    //  Click on a product to view its details.
     // We will use the first product on the page for this test.
     const productIndex = 0;
     await HomePage.openProductbyIndex(productIndex);
 
-    // 3. Get the maximum available quantity.
+    //  Get the maximum available quantity.
     const maxQuantity = await ProductPage.getMaxProductStock();
     if (maxQuantity === 0) {
       throw new Error("Cannot run this test: The selected product is already out of stock.");
     }
 
-    // 4. Select the maximum available quantity and add it to the cart.
+    // Select the maximum available quantity and add it to the cart.
     await ProductPage.setProductQuantity(maxQuantity);
     await ProductPage.clickAddToCartButton();
 
-    // 5. Navigate to the Cart page and get totals.
+    //  Navigate to the Cart page and get totals.
     await CartPage.open();
     await CartPage.clickCheckout();
     await expect(browser).toHaveUrl(expect.stringContaining("/shipping"));
 
-    // 6. Fill out the shipping form and proceed to payment.
+    // Fill out the shipping form and proceed to payment.
     const shippingData = {
       address: "123 Test St",
       city: "Test City",
@@ -143,15 +143,15 @@ describe("Place an order", () => {
     await PaymentPage.clickContinue();
     await expect(browser).toHaveUrl(expect.stringContaining("/placeorder"));
 
-    // 7. Place the order.
+    // Place the order.
     await PlaceOrderPage.clickPlaceOrderButton();
     await expect(browser).toHaveUrl(expect.stringContaining("/order/"));
 
-    // 8. Navigate back to the product's home page.
+    //  Navigate back to the product's home page.
     await HomePage.open();
     await HomePage.waitForProductListToLoad();
 
-    // 9. Click on the same product to verify its new stock status.
+    // Click on the same product to verify its new stock status.
     await HomePage.openProductbyIndex(productIndex);
 
     // Assertions: Verify that the product is now "Out of Stock" and the button is disabled.

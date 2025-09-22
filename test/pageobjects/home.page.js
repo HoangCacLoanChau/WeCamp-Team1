@@ -49,7 +49,7 @@ class HomePage extends Page {
   }
   async waitForProductListToLoad() {
     // Wait for at least one card to exist
-    await $(".card").waitForExist({ timeout: 15000 });
+    await $(".card").waitForDisplayed({ timeout: 15000 });
   }
   // Gets a specific product card by its index
   async getProductCardByIndex(index) {

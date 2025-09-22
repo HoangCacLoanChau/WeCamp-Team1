@@ -6,10 +6,12 @@ import ShippingPage from "../pageobjects/order/shipping.page";
 import PaymentPage from "../pageobjects/order/payment.page";
 import OrderPage from "../pageobjects/order/order.page";
 import PlaceOrderPage from "../pageobjects/order/placeOrder.page";
-import { $ } from "@wdio/globals";
+import { $, browser } from "@wdio/globals";
 import { expect as chaiExpect } from "chai";
 import PaypalPage from "../pageobjects/order/paypal.page.js";
+import AdminOrderPage from "../pageobjects/admin/admin-order.page.js";
 describe("Run main flow ", () => {
+  let orderPaidId;
   before(async () => {
     await browser.maximizeWindow();
   });
@@ -17,7 +19,6 @@ describe("Run main flow ", () => {
     // 1. Log in with a valid user.
     await LoginPage.open();
     await LoginPage.login("john@email.com", "123456");
-    await HomePage.waitForProductListToLoad();
 
     // 2. Add a single product to the cart.
     const products = [
@@ -31,6 +32,7 @@ describe("Run main flow ", () => {
       country: "Vietnam",
     };
     const expectedOrderItems = [];
+    await HomePage.waitForProductListToLoad();
 
     for (const product of products) {
       await HomePage.openProductbyIndex(product.index);
@@ -98,6 +100,8 @@ describe("Run main flow ", () => {
     // Verify order summary totals.
     const actualOrderTotalPrice = await OrderPage.getTotalPrice();
     await expect(actualOrderTotalPrice).toBeCloseTo(expectedCartTotalPrice + tax + shipping, 2);
+    const url = await browser.getUrl();
+    orderPaidId = url.split("/").pop();
   });
   it("paypal", async () => {
     const notPaidText = await (await OrderPage.paymentStatus).getText();
@@ -115,5 +119,18 @@ describe("Run main flow ", () => {
     const successAlert = await $('//div[contains(text(),"Order is paid")]');
     await successAlert.waitForDisplayed({ timeout: 10000 });
     chaiExpect(await successAlert.isDisplayed()).to.equal(true);
+  });
+
+  it("Admin mark delivery", async () => {
+    await browser.execute(() => localStorage.clear());
+    await LoginPage.open();
+    await LoginPage.login("admin@email.com", "123456");
+    await browser.pause(800);
+    await AdminOrderPage.openOrder(orderPaidId);
+    await expect(AdminOrderPage.btnMarkDelivered).toBeDisplayed();
+    await AdminOrderPage.openOrder(orderPaidId);
+    await AdminOrderPage.markDelivered();
+    await expect(await AdminOrderPage.deliveryStatus.getText()).toContain("Delivered");
+    await browser.pause(5000);
   });
 });

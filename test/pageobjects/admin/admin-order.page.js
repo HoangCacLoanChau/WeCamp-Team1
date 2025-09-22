@@ -1,4 +1,6 @@
-class AdminOrderPage {
+import Page from "../page";
+
+class AdminOrderPage extends Page {
   get btnMarkDelivered() {
     return $('//button[normalize-space()="Mark As Delivered"]');
   }
@@ -7,10 +9,11 @@ class AdminOrderPage {
   }
 
   async openOrder(orderId) {
-    await browser.url(`/order/${orderId}`);
+    await super.open(`order/${orderId}`);
   }
 
   async markDelivered() {
+    await this.btnMarkDelivered.waitForDisplayed({ timeout: 20000 });
     await this.btnMarkDelivered.click();
   }
 }

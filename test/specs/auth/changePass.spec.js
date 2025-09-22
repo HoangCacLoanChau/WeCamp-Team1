@@ -1,6 +1,6 @@
 import { expect } from "@wdio/globals";
 import LoginPage from "../../pageobjects/auth/login.page.js";
-import HomePage from "../../pageobjects/auth/home.page.js";
+import HomePage from "../../pageobjects/home.page.js";
 import ProfilePage from "../../pageobjects/auth/profile.page.js";
 
 describe("Epic 1 - Change Password", () => {
@@ -9,6 +9,7 @@ describe("Epic 1 - Change Password", () => {
   let originalProfile;
 
   before(async () => {
+    await browser.maximizeWindow();
     await LoginPage.open();
     await LoginPage.login("acc@gmail.com", ORIGINAL_PASS);
     await HomePage.navigateToProfile();
@@ -64,19 +65,23 @@ describe("Epic 1 - Change Password", () => {
     }: should block when new password has invalid format - ${note}`, async () => {
       await ProfilePage.updateProfile({ password: pw, confirmPassword: pw });
 
-      // chờ 1 nhịp trước khi đọc toast (đủ chậm)
-      await browser.pause(800);
+      await browser.pause(800); // Give time for toast to appear // Assert that the success toast is NOT displayed
 
       if (await ProfilePage.toastMessage.isExisting()) {
         const text = await ProfilePage.toastMessage.getText();
-        expect(text).not.toHaveText("Profile updated successfully");
-      } else {
-        // fallback siêu gọn nếu không có toast
-        const pMsg = await ProfilePage.passwordInput.getProperty("validationMessage");
-        const cMsg = await ProfilePage.confirmPasswordInput.getProperty("validationMessage");
-        const msg = `${pMsg || ""} ${cMsg || ""}`.trim();
-        expect(msg.length).toBeGreaterThan(0);
-      }
+        expect(text).not.toHaveText("Profile updated successfully", {
+          message: `TCCP_02.${
+            i + 1
+          }: Expected update to fail for invalid password '${pw}', but it succeeded.`,
+        });
+      } // Assert that the failure toast IS displayed
+
+      await expect(ProfilePage.toastMessageFail).toBeDisplayed({
+        timeout: 5000,
+        message: `TCCP_02.${
+          i + 1
+        }: Expected failure toast to be displayed for invalid password '${pw}', but it was not.`,
+      }); // Verify that the URL remains on the profile page
 
       expect(await browser.getUrl()).toContain("/profile");
     });
@@ -87,23 +92,13 @@ describe("Epic 1 - Change Password", () => {
     await expect(ProfilePage.toastMessageFail).toBeDisplayed({ timeout: 5000 });
     expect(ProfilePage.toastMessageFail).toHaveText("Passwords do not match");
   });
+  it("TCCP_04: Verify user is unable to change password if new password matches a previously used password (original password)", async function () {
+    await ProfilePage.updateProfile({ password: ALT_PASS, confirmPassword: ALT_PASS });
+    await expect(ProfilePage.toastMessage).toBeDisplayed({ timeout: 10000 });
+    await ProfilePage.updateProfile({ password: ORIGINAL_PASS, confirmPassword: ORIGINAL_PASS });
+    await browser.pause(800);
+    await expect(ProfilePage.toastMessage).toBeDisplayed({ timeout: 5000 });
+    await expect(ProfilePage.toastMessage).toHaveText(expect.stringContaining("previously used"));
+    expect(await browser.getUrl()).toContain("/profile");
+  });
 });
-//   it('TCCP_04: should block when new password matches a previously used password', async function () {
-//     // Cần set env PREV_USED_PASS = một mật khẩu hợp lệ đã từng dùng trong hệ thống
-//     const reused = process.env.PREV_USED_PASS;
-//     if (!reused) {
-//       console.warn('SKIP TCCP_04: set PREV_USED_PASS để kiểm thử reuse history.');
-//       this.skip(); // chỉ dùng được với function()
-//     }
-
-//     await ProfilePage.updateProfile({ password: reused, confirmPassword: reused });
-
-//     const msg = await getPasswordError();
-//     console.log('Reuse history =>', msg);
-
-//     // Có thông báo lỗi (ví dụ: cannot reuse / previously used / history / already used)
-//     expect(msg.length).toBeGreaterThan(0);
-//     if (await ProfilePage.toastMessage.isExisting()) {
-//       await expect(ProfilePage.toastMessage).not.toHaveTextContaining('Password changed successfully');
-//     }
-//   });

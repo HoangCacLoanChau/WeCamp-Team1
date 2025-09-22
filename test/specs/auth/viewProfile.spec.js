@@ -3,14 +3,17 @@ import ProfilePage from "../../pageobjects/auth/profile.page";
 import HomePage from "../../pageobjects/home.page";
 
 describe("Login and Profile navigation", () => {
+  before(async () => {
+    await browser.maximizeWindow();
+  });
   afterEach(async () => {
-    await browser.reloadSession();
+    await browser.execute(() => localStorage.clear());
   });
 
   it("should navigate to Profile page from header menu", async () => {
     // Step 1: Login
     await LoginPage.open();
-    await LoginPage.login("admin@email.com", "123456");
+    await LoginPage.login("john@email.com", "123456");
     await expect(browser).toHaveUrl("http://localhost:3000/");
 
     // Step 2: Navigate to Profile via header dropdown
@@ -24,7 +27,7 @@ describe("Login and Profile navigation", () => {
 
   it("should display profile information (Name, Email) and empty Password fields", async () => {
     await LoginPage.open();
-    await LoginPage.login("admin@email.com", "123456");
+    await LoginPage.login("john@email.com", "123456");
     await expect(browser).toHaveUrl("http://localhost:3000/");
     await HomePage.navigateToProfile();
     await expect(browser).toHaveUrl("http://localhost:3000/profile");

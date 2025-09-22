@@ -104,6 +104,7 @@ class PlaceOrderPage extends Page {
    * Click the "Place Order" button.
    */
   async clickPlaceOrderButton() {
+    await this.placeOrderButton.waitForDisplayed();
     await this.placeOrderButton.click();
   }
 

@@ -4,7 +4,6 @@ import { expect as chaiExpect } from "chai";
 import LoginPage from "../../pageobjects/auth/login.page.js";
 import ProductPage from "../../pageobjects/product/product.page.js";
 import CartPage from "../../pageobjects/product/cart.page.js";
-import CheckoutPage from "../../pageobjects/order/shipping.page.js";
 import PaypalPage from "../../pageobjects/order/paypal.page.js";
 import OrderPage from "../../pageobjects/order/order.page.js";
 import HomePage from "../../pageobjects/home.page";

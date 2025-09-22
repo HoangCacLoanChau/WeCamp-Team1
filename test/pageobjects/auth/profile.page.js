@@ -58,5 +58,47 @@ class ProfilePage extends Page {
   async open() {
     await super.open("profile");
   }
+  // order history
+  // Selectors for the entire order history table and its rows
+  get orderHistoryTable() {
+    return $("table.table-sm");
+  }
+
+  get orderListRows() {
+    return this.orderHistoryTable.$$("tbody tr");
+  }
+
+  // A flexible selector to find a row based on a specific order ID
+  async getRowByOrderId(orderId) {
+    return this.orderHistoryTable.$(`//tr[td[normalize-space()="${orderId}"]]`);
+  }
+
+  // A method to get the payment status for a specific order ID
+  async getPaidStatus(orderId) {
+    const row = await this.getRowByOrderId(orderId);
+    if (!row) return null;
+    const paidCell = await row.$("td:nth-child(4)");
+    // Checks if the cell contains a date string, indicating it's paid.
+    const cellText = await paidCell.getText();
+    return cellText.length > 0 ? "Paid" : "Not Paid";
+  }
+
+  // A method to get the delivery status for a specific order ID
+  async getDeliveredStatus(orderId) {
+    const row = await this.getRowByOrderId(orderId);
+    if (!row) return null;
+    const deliveredCell = await row.$("td:nth-child(5)");
+    // Checks if the cell contains an SVG icon (red 'X' means not delivered)
+    const hasDeliveredIcon = await deliveredCell.$("svg").isExisting();
+    return hasDeliveredIcon ? "Not Delivered" : "Delivered";
+  }
+
+  // A method to click the details button for a specific order ID
+  async clickDetailsButton(orderId) {
+    const row = await this.getRowByOrderId(orderId);
+    if (row) {
+      await row.$("a.btn-light").click();
+    }
+  }
 }
 export default new ProfilePage();

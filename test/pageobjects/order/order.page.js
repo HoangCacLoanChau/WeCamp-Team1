@@ -17,7 +17,7 @@ class OrderPage extends Page {
   }
 
   async open(orderId) {
-    await browser.url(`/order/${orderId}`);
+    await super.open(`order/${orderId}`);
   }
 
   async clickContinueToPaypal() {
@@ -170,13 +170,6 @@ class OrderPage extends Page {
    */
   async clickPlaceOrderButton() {
     await this.placeOrderButton.click();
-  }
-
-  /**
-   * Open the Order page directly.
-   */
-  async open() {
-    await super.open("order/:id");
   }
 }
 export default new OrderPage();

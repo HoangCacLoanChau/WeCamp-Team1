@@ -33,12 +33,30 @@ describe("Epic 1 - Edit Profile", () => {
     }
     await browser.reloadSession();
   });
-
-  it("TCEP_01: should update profile with valid email", async () => {
-    await ProfilePage.updateProfile({ name: "Nhi Phạm", email: "linhnhi@example.com" });
-    await ProfilePage.toastMessage.waitForExist({ timeout: 50000 });
-    await expect(ProfilePage.toastMessage).toHaveText("Profile updated successfully");
+  const validEmails = [
+      { newemail: "user@example.com", note: "newemail1" },
+      { newemail: "firstname.lastname@domain.com.au", note: "newemail2" },
+      { newemail: "usertag@do_main.com", note: "newemail3" },
+      { newemail: "usertag@do-main.com", note: "newemail4" },
+      { newemail: "user_tag@domain.com", note: "newemail5" },
+        ];
+    
+  validEmails.forEach(({ newemail, note }, i) => {
+    it(`TCEP_01.${
+      i + 1
+    }: should update profile with valid email - ${note}`, async () => {
+      await ProfilePage.updateProfile({ name: "Nhi Phạm", email: newemail });
+      await browser.pause(800);
+      await ProfilePage.toastMessage.waitForExist({ timeout: 50000 });
+      await expect(ProfilePage.toastMessage).toHaveText("Profile updated successfully");
   });
+  });
+
+  // it("TCEP_01: should update profile with valid email", async () => {
+  //   await ProfilePage.updateProfile({ name: "Nhi Phạm", email: "linhnhi@example.com" });
+  //   await ProfilePage.toastMessage.waitForExist({ timeout: 50000 });
+  //   await expect(ProfilePage.toastMessage).toHaveText("Profile updated successfully");
+  // });
 
   it("TCEP_02: should block when email missing '@'", async () => {
     await ProfilePage.updateProfile({ name: "Test", email: "editprofilegmailcom" });
